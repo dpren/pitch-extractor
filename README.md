@@ -20,7 +20,7 @@ Usage
 ----
 
     stack build
-    stack exec pitch-extractor-exe "synth demo" "5"
+    stack exec pitch-extractor-exe "singing in the shower" "5"
 
 
 args:
