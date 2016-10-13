@@ -5,8 +5,6 @@ YouTube Pitch Extractor
 
 It finds segments of YouTube videos that have a musical pitch.
 
-A Haskell learning project of mine - also part of a larger program for generative composition.
-
 
 Prerequisites
 ----
@@ -14,13 +12,13 @@ Prerequisites
 	brew install ffmpeg
 	brew install youtube-dl
 
-[Stack](https://docs.haskellstack.org/en/stable/README/) (Haskell build tool)
+[Stack](https://docs.haskellstack.org/en/stable/README/) (build tool)
 
 Usage
 ----
 
     stack build
-    stack exec pitch-extractor-exe "singing in the shower" "5"
+    stack exec pitch-extractor-exe "synthesizer demo" "5"
 
 
 args:

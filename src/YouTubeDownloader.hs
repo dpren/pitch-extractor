@@ -13,8 +13,8 @@ import System.Process
 
 type Resp = Response (Map String Value)
 
---anti-bot
-api_key = mconcat ["AIzaSyCCYfqHdQPxyhb","NAPlUeSecvBnoQK0kQhk"]
+
+api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
 
 download path videoId = callCommand $ mconcat [
    "youtube-dl -o "
@@ -31,7 +31,7 @@ searchYoutube :: Text -> Text -> String -> IO ()
 searchYoutube query maxResults path = do
    let opts = defaults & param "part"            .~ ["snippet"]
                        & param "key"             .~ [api_key]
-                       & param "maxResults"      .~ [maxResults]  --max:50
+                       & param "maxResults"      .~ [maxResults]
                        & param "type"            .~ ["video"]
                        & param "duration"        .~ ["short"]
                        & param "videoDefinition" .~ ["standard"]
