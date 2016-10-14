@@ -1,14 +1,13 @@
 module CalculatePitchLocation where
-    ( trackFileToBins
-    , pitchStartTime
-    , pitchDuration
-    ) where
 
 import PitchTrack.Track       (trackFileToList)
 import Data.List
 import Data.Function          (on)
 import Control.Applicative    (liftA2)
 
+
+avgFreq :: [Int] -> Int
+avgFreq bin = sum bin `div` 2
 
 pitchStartTime :: [[Int]] -> Maybe Double
 pitchStartTime bins = computeTime <$> (firstSegment bins)
