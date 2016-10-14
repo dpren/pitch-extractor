@@ -1,4 +1,4 @@
-module CalculatePitchLocation
+module CalculatePitchLocation where
     ( trackFileToBins
     , pitchStartTime
     , pitchDuration
@@ -40,7 +40,6 @@ dropZeros = fmap (takeWhile (> 0))
 -- | Data binning by frequency range
 trackFileToBins :: FilePath -> IO [[Int]]
 trackFileToBins file = groupByQuantize 6 <$> (trackRound file)
-   -- where trackRound = map round <$> trackFileToList
 
 groupByQuantize :: Int -> [Int] -> [[Int]]
 groupByQuantize range = groupBy ((==) `on` quantize range)

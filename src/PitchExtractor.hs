@@ -37,11 +37,11 @@ mainFunc = do
    args <- getArgs
    currentDir <- getCurrentDirectory
    let searchQuery = pack (args !! 0)
-   let maxResults  = pack (args !! 1)
-       outputBase = currentDir </> "vid-output"
-       outputDir  = outputBase </> unpack (replace " " "_" searchQuery)
-       sourceDir  = currentDir </> "vid-source"
-       tempDir    = currentDir </> "temp"
+       maxResults  = pack (args !! 1)
+       outputBase  = currentDir </> "vid-output"
+       outputDir   = outputBase </> unpack (replace " " "_" searchQuery)
+       sourceDir   = currentDir </> "vid-source"
+       tempDir     = currentDir </> "temp"
 
    baseExists   <- doesDirectoryExist outputBase
    createDirectoryIfMissing baseExists outputBase
@@ -74,9 +74,9 @@ mainFunc = do
 
 extractPitchTo :: FilePath -> FilePath -> FilePath -> IO ()
 extractPitchTo outputDir tempDir filePath = do
-   let fileName = takeFileName filePath
+   let fileName    = takeFileName filePath
        rawFilePath = tempDir </> fileName -<.> ".raw"
-       outputPath = outputDir </> fileName
+       outputPath  = outputDir </> fileName
 
    callCommand $ createRaw filePath rawFilePath
 
