@@ -4,16 +4,18 @@ import PitchTrack.Track       (trackFileToList)
 import Data.List
 import Data.Function          (on)
 import Control.Applicative    (liftA2)
+import Numeric.Statistics     (median)
+import FreqToNote             (freqToNoteName)
 
 
-avgFreq :: [Int] -> Int
-avgFreq bin = sum bin `div` 2
+pitchNoteName :: [Int] -> [Char]
+pitchNoteName pitchSeg = freqToNoteName $ median (fromIntegral <$> pitchSeg)
 
 pitchStartTime :: [[Int]] -> Maybe Double
 pitchStartTime bins = computeTime <$> (firstSegment bins)
 
 pitchDuration :: [[Int]] -> Double
-pitchDuration bins = computeTime $ (pitchSegment bins)
+pitchDuration bins = computeTime (pitchSegment bins)
 
 
 firstSegment :: [[Int]] -> Maybe [Int]
@@ -38,7 +40,7 @@ dropZeros = fmap (takeWhile (> 0))
 
 -- | Data binning by frequency range
 trackFileToBins :: FilePath -> IO [[Int]]
-trackFileToBins file = groupByQuantize 6 <$> (trackRound file)
+trackFileToBins file = groupByQuantize 3 <$> (trackRound file)
 
 groupByQuantize :: Int -> [Int] -> [[Int]]
 groupByQuantize range = groupBy ((==) `on` quantize range)

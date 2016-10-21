@@ -8,8 +8,9 @@ import System.FilePath        ((-<.>), (</>), takeFileName)
 import System.Directory
 import Data.Text as Text      (pack, unpack, replace, Text)
 
-import YouTubeDownloader
-import CalculatePitchLocation (trackFileToBins, pitchStartTime, pitchDuration)
+import YouTubeDownloader      (searchYoutube)
+import CalculatePitchLocation
+--(trackFileToBins, pitchStartTime, pitchDuration, pitchNoteName)
 
 
 a <$$> b = (fmap.fmap) a b
@@ -76,13 +77,15 @@ extractPitchTo :: FilePath -> FilePath -> FilePath -> IO ()
 extractPitchTo outputDir tempDir filePath = do
    let fileName    = takeFileName filePath
        rawFilePath = tempDir </> fileName -<.> ".raw"
-       outputPath  = outputDir </> fileName
 
    callCommand $ createRaw filePath rawFilePath
 
    let bins = trackFileToBins rawFilePath
    duration <- show <$> (pitchDuration <$> bins)
    startTime <- show <$$> (pitchStartTime <$> bins)
+   noteName <- pitchNoteName <$> pitchSegment <$> bins
+
+   let outputPath = outputDir </> (noteName ++ "_" ++ fileName)
 
    case startTime of
       Just time -> case (read duration :: Double) > 0.3 of
