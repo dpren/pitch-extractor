@@ -5,10 +5,9 @@ import Control.Lens
 import Data.Aeson.Lens
 import Data.Aeson
 import Data.Map as Map
-
 import Data.ByteString.Lazy as SL (putStrLn)
-import Data.Text as Text (pack, unpack, Text)
-
+import Data.Text as Text          (pack, unpack, Text)
+import Control.Monad              (when, unless)
 import System.Process
 
 type Resp = Response (Map String Value)
@@ -35,12 +34,17 @@ searchYoutube query maxResults path = do
                        & param "type"            .~ ["video"]
                        & param "duration"        .~ ["short"]
                        & param "videoDefinition" .~ ["standard"]
-                       & param "order"           .~ ["date"]
+                     --   & param "order"           .~ ["date"]
                        & param "q"               .~ [query]
 
    r <- getWith opts "https://www.googleapis.com/youtube/v3/search?"
 
    let videoIds = r ^.. responseBody . key "items" . values . key "id" . key "videoId" . _String
-   print $ videoIds
+
+   let resultsCount = (r ^.. responseBody . key "pageInfo" . key "totalResults" . _Integer) !! 0
+
+   print videoIds
+
+   when (resultsCount == 0) (error $ "\n No videos found for:  " ++ (unpack query))
 
    mapM_ ((download path) . Text.unpack) videoIds

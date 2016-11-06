@@ -1,9 +1,8 @@
 YouTube Pitch Extractor
 ---
 
-#### :information_desk_person::game_die::tv::notes:
-
-It finds segments of YouTube videos that have a musical pitch.
+It finds segments of YouTube videos that have a musical pitch and extracts
+them to a directory, indexed by note.
 
 
 Prerequisites
@@ -11,20 +10,21 @@ Prerequisites
 
 	brew install ffmpeg
 	brew install youtube-dl
+    brew install haskell-stack
 
-[Stack](https://docs.haskellstack.org/en/stable/README/) (build tool)
+Uses [Stack](https://docs.haskellstack.org/en/stable/README/) (build tool)
 
 Usage
 ----
 
     stack build
-    stack exec pitch-extractor-exe "synthesizer demo" "5"
+    stack exec pitch-extractor-exe "philliesboy681 on the piano" "8"
 
 
 args:
 - search query
 - max videos to download (< 50)
 
-(it takes a while)
+(downloading can take a while)
 
 outputs to -> `/vid-ouput/<search query>`

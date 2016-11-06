@@ -3,61 +3,85 @@ module CalculatePitchLocation where
 import PitchTrack.Track       (trackFileToList)
 import Data.List
 import Data.Function          (on)
-import Control.Applicative    (liftA2)
-import Numeric.Statistics     (median)
-import FreqToNote             (freqToNoteName)
+import Data.Fixed             (mod')
+import Numeric.Statistics
+import FreqToNote
+
+a <$$> b = (fmap.fmap) a b
+
+-- | How far apart in pitch to allow when grouping
+pitchRangeTolerance :: Double
+pitchRangeTolerance = 0.68
+
+-- | 1.059463094359
+twelfthRootOfTwo = 2 ** (1/12)
+
+halfStepDownDistFrom :: Double -> Double
+halfStepDownDistFrom hz = hz - (hz / twelfthRootOfTwo)
 
 
-pitchNoteName :: [Int] -> [Char]
-pitchNoteName pitchSeg = freqToNoteName $ median (fromIntegral <$> pitchSeg)
+-- | List of pitch samples from '.raw' file, grouped by consecutive similarity
+trackFileToBins :: FilePath -> IO [[Double]]
+trackFileToBins file = groupByQuantize <$> (trackFileToList file)
 
-pitchStartTime :: [[Int]] -> Maybe Double
+trackFileToMidiBins :: FilePath -> IO [[Double]]
+trackFileToMidiBins file = groupByEq <$> freqToMidiFloat <$$> (trackFileToList file)
+
+groupByEq :: [Double] -> [[Double]]
+groupByEq = groupBy (==)
+
+groupByQuantize :: [Double] -> [[Double]]
+groupByQuantize = groupBy ((==) `on` quantize pitchRangeTolerance)
+
+-- | Rounds n down to the nearest multiple of note range
+quantize :: Double -> Double -> Double
+quantize range n = n - (n `mod'` (max 3 (fromIntegral . round $ range * halfStepDownDistFrom n)))
+
+
+
+pitchNoteName :: [Double] -> [Char]
+pitchNoteName pitchSeg = freqToNoteName $ median pitchSeg
+
+pitchStartTime :: [[Double]] -> Maybe Double
 pitchStartTime bins = computeTime <$> (firstSegment bins)
 
-pitchDuration :: [[Int]] -> Double
+pitchDuration :: [[Double]] -> Double
 pitchDuration bins = computeTime (pitchSegment bins)
 
+-- | The list preceding the pitch segment
+firstSegment :: [[Double]] -> Maybe [Double]
+firstSegment bins = concat <$> flip take bins <$> (longestBinIndex . dropOutliers) bins
 
-firstSegment :: [[Int]] -> Maybe [Int]
-firstSegment bins = concat <$> flip take bins <$> (longestBinIndex bins)
-
-pitchSegment :: [[Int]] -> [Int]
-pitchSegment bins = longestBin bins
-
-
-longestBinIndex :: [[Int]] -> Maybe Int
-longestBinIndex = liftA2 elemIndex longestBin dropZeros
-
-longestBin :: [[Int]] -> [Int]
-longestBin = longest . dropZeros
-
-longest :: [[a]] -> [a]
-longest = maximumBy (compare `on` length)
-
-dropZeros :: [[Int]] -> [[Int]]
-dropZeros = fmap (takeWhile (> 0))
+pitchSegment :: [[Double]] -> [Double]
+pitchSegment = longestBin . dropOutliers
 
 
--- | Data binning by frequency range
-trackFileToBins :: FilePath -> IO [[Int]]
-trackFileToBins file = groupByQuantize 3 <$> (trackRound file)
+longestBinIndex :: [[Double]] -> Maybe Int
+longestBinIndex bins = elemIndex (longestBin bins) bins
 
-groupByQuantize :: Int -> [Int] -> [[Int]]
-groupByQuantize range = groupBy ((==) `on` quantize range)
+longestBin :: [[Double]] -> [Double]
+longestBin = (maximumBy (compare `on` length))
 
--- | Rounds n down to the nearest multiple of range
-quantize :: Int -> Int -> Int
-quantize range n = n - (n `mod` range)
+-- | Exclude non-musical pitches before retrieving the longest segment
+dropOutliers :: [[Double]] -> [[Double]]
+dropOutliers = fmap (takeWhile (\x -> x > 55 && x < 2000))
+
+dropMIDIOutliers :: [[Double]] -> [[Double]]
+dropMIDIOutliers = fmap (takeWhile (\x -> x > 11))
 
 
 -- | totalNumOfSamples / samplesPerSecond = total seconds
-computeTime :: [Int] -> Double
+computeTime :: [Double] -> Double
 computeTime pitchList = (totalSamples pitchList) / 44100
 
--- | 2048 samples per pitch computation (defaultSampleNum)
-totalSamples :: [Int] -> Double
+-- | Each pitch computation is 2048 samples (defaultSampleNum in PitchTrack)
+totalSamples :: [Double] -> Double
 totalSamples = fromIntegral . (* 2048) . length
 
 
-trackRound :: FilePath -> IO [Int]
-trackRound file = fmap round <$> trackFileToList file
+
+trackRoundFileToBins :: FilePath -> IO [[Double]]
+trackRoundFileToBins file = groupByQuantize <$> (trackRound file)
+
+trackRound :: FilePath -> IO [Double]
+trackRound file = fmap (fromIntegral . round) <$> trackFileToList file

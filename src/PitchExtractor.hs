@@ -1,48 +1,33 @@
 module PitchExtractor where
 
 import Data.List
-import Control.Monad          (when)
-import System.Process         (callCommand, spawnCommand)
-import System.Environment
+import Data.Text as Text      (pack, unpack, replace, Text)
+import Control.Monad          (when, unless)
+import System.Environment     (getArgs)
 import System.FilePath        ((-<.>), (</>), takeFileName)
 import System.Directory
-import Data.Text as Text      (pack, unpack, replace, Text)
+import System.Process         (callCommand, spawnCommand)
 
+import ExtractPitchTo         (extractPitchTo)
 import YouTubeDownloader      (searchYoutube)
-import CalculatePitchLocation
---(trackFileToBins, pitchStartTime, pitchDuration, pitchNoteName)
-
-
-a <$$> b = (fmap.fmap) a b
+import CalculatePitchLocation ((<$$>))
 
 dropDotFiles :: [FilePath] -> [FilePath]
 dropDotFiles = filter $ \x -> (head x) /= '.'
 
-createRaw :: FilePath -> FilePath -> String
-createRaw filePath rawFilePath = concat [
-     "ffmpeg -i ", filePath
-   , " -f f64le -ar 44.1k -ac 1 ", rawFilePath ]
 
-spliceFile :: FilePath -> String -> String -> FilePath -> String
-spliceFile filePath startTime duration outputPath = concat [
-     "ffmpeg -ss " , startTime
-   , " -i "        , filePath
-   , " -t "        , duration
-   , " -c copy "   , outputPath ]
-
-
-
-
-mainFunc :: IO ()
-mainFunc = do
+runPitchExtractor :: IO ()
+runPitchExtractor = do
    args <- getArgs
    currentDir <- getCurrentDirectory
-   let searchQuery = pack (args !! 0)
-       maxResults  = pack (args !! 1)
-       outputBase  = currentDir </> "vid-output"
-       outputDir   = outputBase </> unpack (replace " " "_" searchQuery)
-       sourceDir   = currentDir </> "vid-source"
-       tempDir     = currentDir </> "temp"
+   let searchQuery  = pack (args !! 0)
+       maxResults   = pack (args !! 1)
+       outputBase   = currentDir </> "vid-output"
+       outputDir    = outputBase </> unpack (replace " " "_" searchQuery)
+       outputWavDir = outputDir  </> "WAV"
+       sourceDir    = currentDir </> "vid-source"
+       tempDir      = currentDir </> "temp"
+       offlineMode  = False
 
    baseExists   <- doesDirectoryExist outputBase
    createDirectoryIfMissing baseExists outputBase
@@ -52,43 +37,28 @@ mainFunc = do
    tempExists   <- doesDirectoryExist tempDir
 
    when outputExists $ removeDirectoryRecursive outputDir
-   when sourceExists $ removeDirectoryRecursive sourceDir
    when tempExists   $ removeDirectoryRecursive tempDir
 
    createDirectory outputDir
-   createDirectory sourceDir
+   createDirectory outputWavDir
    createDirectory tempDir
 
-   searchYoutube searchQuery maxResults sourceDir
+   if offlineMode
+      then unless sourceExists $ error "no source directory found"
+      else do
+         when sourceExists $ removeDirectoryRecursive sourceDir
+         createDirectory sourceDir
+         searchYoutube searchQuery maxResults sourceDir
+         return ()
 
    sourceFiles <- (sourceDir </>) <$$> dropDotFiles <$> listDirectory sourceDir
    mapM_ putStrLn sourceFiles
-   mapM_ (extractPitchTo outputDir tempDir) sourceFiles
+   mapM_ (extractPitchTo outputDir outputWavDir tempDir) sourceFiles
 
-   removeDirectoryRecursive tempDir
-   removeDirectoryRecursive sourceDir
+   outputFiles <- (outputDir </>) <$$> dropDotFiles <$> listDirectory outputDir
 
-   putStrLn $ "\n --- \n Done, successful videos extracted to: " ++ outputDir
+   unless offlineMode $ do
+      removeDirectoryRecursive tempDir
+      removeDirectoryRecursive sourceDir
 
-
-
-
-extractPitchTo :: FilePath -> FilePath -> FilePath -> IO ()
-extractPitchTo outputDir tempDir filePath = do
-   let fileName    = takeFileName filePath
-       rawFilePath = tempDir </> fileName -<.> ".raw"
-
-   callCommand $ createRaw filePath rawFilePath
-
-   let bins = trackFileToBins rawFilePath
-   duration <- show <$> (pitchDuration <$> bins)
-   startTime <- show <$$> (pitchStartTime <$> bins)
-   noteName <- pitchNoteName <$> pitchSegment <$> bins
-
-   let outputPath = outputDir </> (noteName ++ "_" ++ fileName)
-
-   case startTime of
-      Just time -> case (read duration :: Double) > 0.3 of
-                     True -> callCommand $ spliceFile filePath time duration outputPath
-                     False -> putStrLn "skipping: duration too short"
-      Nothing -> putStrLn "longestBin not found"
+   putStrLn $ "\n \n Done, successful videos extracted to: " ++ outputDir
