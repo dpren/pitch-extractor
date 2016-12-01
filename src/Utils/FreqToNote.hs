@@ -1,4 +1,4 @@
-module FreqToNote where
+module Utils.FreqToNote where
 
 notes :: [[Char]]
 notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]

@@ -1,6 +1,11 @@
 *.raw
+*.mp4
+*.wav
+*.mkv
+*.webm
 .DS_Store
 .stack-work/
 vid-output/
 vid-source/
+vid-source-mp4/
 temp/

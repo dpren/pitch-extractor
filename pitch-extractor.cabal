@@ -2,11 +2,11 @@ name:                pitch-extractor
 version:             0.1.0.0
 synopsis:            Splice/index musical pitches found in media.
 description:         Please see README.md
-homepage:            https://github.com/githubuser/pitch-extractor#readme
+homepage:            https://github.com/dpren/pitch-extractor#readme
 license:             MIT
 license-file:        LICENSE
 author:              Darren Prentice
-maintainer:          example@example.com
+maintainer:          prenticedarren@gmail.com
 category:            Sound
 build-type:          Simple
 -- extra-source-files:
@@ -18,7 +18,9 @@ library
                      , ExtractPitchTo
                      , YouTubeDownloader
                      , CalculatePitchLocation
-                     , FreqToNote
+                     , Utils.FreqToNote
+                     , Utils.MediaConversion
+                     , Utils.Misc
   build-depends:       base >= 4.7 && < 5
                      , pitchtrack
                      , process
@@ -31,6 +33,7 @@ library
                      , aeson
                      , text
                      , bytestring
+                     , split
                      , hstats
 
   default-language:    Haskell2010
@@ -57,4 +60,4 @@ test-suite pitch-extractor-test
 
 source-repository head
   type:     git
-  location: https://github.com/githubuser/pitch-extractor
+  location: https://github.com/dpren/pitch-extractor

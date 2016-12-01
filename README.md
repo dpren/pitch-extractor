@@ -12,7 +12,8 @@ Prerequisites
 	brew install youtube-dl
     brew install haskell-stack
 
-Uses [Stack](https://docs.haskellstack.org/en/stable/README/) (build tool)
+    python -m pip install aubio
+
 
 Usage
 ----

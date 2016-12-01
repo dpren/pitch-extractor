@@ -1,4 +1,4 @@
-module ExtractPitchTo (extractPitchTo) where
+module ExtractPitchTo (extractPitchTo_dywa) where
 
 import Data.List
 import System.FilePath ((-<.>), (</>), takeFileName)
@@ -9,27 +9,27 @@ import Utils.MediaConversion
 import Utils.Misc
 
 
-getPitches_yin :: FilePath -> FilePath -> IO [[Double]]
-getPitches_yin filePath tempPath = do
-  let monoFilePath = tempPath -<.> ".wav"
-  callCommand $ createMonoAudio filePath monoFilePath
+getPitches_dywa :: FilePath -> FilePath -> IO [[Double]]
+getPitches_dywa filePath tempPath = do
+  let rawFilePath = tempPath -<.> ".raw"
+  callCommand $ createRaw filePath rawFilePath
 
-  yin_pitches <- readProcess "/usr/local/bin/python" ["yin_pitch.py", monoFilePath] ""
-  let bins = groupByEq (strToDbls yin_pitches)
+  bins <- trackFileToBins rawFilePath
   return bins
 
 
-extractPitchTo :: FilePath -> FilePath -> FilePath -> FilePath -> IO ()
-extractPitchTo outputDir outputWavDir tempDir filePath = do
+
+extractPitchTo_dywa :: FilePath -> FilePath -> FilePath -> FilePath -> IO ()
+extractPitchTo_dywa outputDir outputWavDir tempDir filePath = do
   let fileName = takeFileName filePath
       tempPath = tempDir </> fileName
 
-  bins <- getPitches_yin filePath tempPath
+  bins <- getPitches_dywa filePath tempPath
 
   let segment     = longestPitchSeg bins
       startTime   = pitchStartTime bins
       duration    = computeTime segment
-      noteName    = pitchNoteNameMIDI segment
+      noteName    = pitchNoteName segment
       outputName  = noteName ++ "__" ++ fileName
       outputPath  = outputDir </> outputName
       wavFilePath = outputWavDir </> outputName -<.> ".wav"

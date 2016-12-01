@@ -5,7 +5,9 @@ import Data.List
 import Data.Function          (on)
 import Data.Fixed             (mod')
 import Numeric.Statistics
-import FreqToNote
+
+import Utils.FreqToNote
+
 
 a <$$> b = (fmap.fmap) a b
 
@@ -38,22 +40,15 @@ quantize :: Double -> Double -> Double
 quantize range n = n - (n `mod'` (max 3 (fromIntegral . round $ range * halfStepDownDistFrom n)))
 
 
-
-pitchNoteName :: [Double] -> [Char]
-pitchNoteName pitchSeg = freqToNoteName $ median pitchSeg
-
 pitchStartTime :: [[Double]] -> Maybe Double
 pitchStartTime bins = computeTime <$> (firstSegment bins)
 
-pitchDuration :: [[Double]] -> Double
-pitchDuration bins = computeTime (pitchSegment bins)
-
 -- | The list preceding the pitch segment
 firstSegment :: [[Double]] -> Maybe [Double]
-firstSegment bins = concat <$> flip take bins <$> (longestBinIndex . dropOutliers) bins
+firstSegment bins = concat <$> flip take bins <$> (longestBinIndex . dropMIDIOutliers) bins
 
-pitchSegment :: [[Double]] -> [Double]
-pitchSegment = longestBin . dropOutliers
+longestPitchSeg :: [[Double]] -> [Double]
+longestPitchSeg = longestBin . dropMIDIOutliers
 
 
 longestBinIndex :: [[Double]] -> Maybe Int
@@ -72,9 +67,9 @@ dropMIDIOutliers = fmap (takeWhile (\x -> x > 11))
 
 -- | totalNumOfSamples / samplesPerSecond = total seconds
 computeTime :: [Double] -> Double
-computeTime pitchList = (totalSamples pitchList) / 44100
+computeTime pitchSeg = (totalSamples pitchSeg) / 44100
 
--- | Each pitch computation is 2048 samples (defaultSampleNum in PitchTrack)
+-- | Each pitch computation is 2048 samples
 totalSamples :: [Double] -> Double
 totalSamples = fromIntegral . (* 2048) . length
 
@@ -85,3 +80,11 @@ trackRoundFileToBins file = groupByQuantize <$> (trackRound file)
 
 trackRound :: FilePath -> IO [Double]
 trackRound file = fmap (fromIntegral . round) <$> trackFileToList file
+
+
+
+pitchNoteName :: [Double] -> [Char]
+pitchNoteName pitchSeg = freqToNoteName $ median pitchSeg
+
+pitchNoteNameMIDI :: [Double] -> [Char]
+pitchNoteNameMIDI pitchSeg = midiToNoteName $ round $ median pitchSeg

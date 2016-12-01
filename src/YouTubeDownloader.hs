@@ -10,8 +10,8 @@ import Data.Text as Text          (pack, unpack, Text)
 import Control.Monad              (when, unless)
 import System.Process
 
-type Resp = Response (Map String Value)
 
+type Resp = Response (Map String Value)
 
 api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
 
