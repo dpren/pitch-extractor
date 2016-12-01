@@ -7,7 +7,6 @@ import System.Environment     (getArgs)
 import System.FilePath        ((-<.>), (</>), takeFileName)
 import System.Directory
 import System.Process         (callCommand)
-import Control.Applicative    (liftA2)
 
 import ExtractPitchTo
 -- import ExtractPitchTo_dywa    (extractPitchTo_dywa)
@@ -28,7 +27,7 @@ runPitchExtractor = do
       sourceDir     = currentDir </> "vid-source"
       sourceMp4Dir  = currentDir </> "vid-source-mp4"
       tempDir       = currentDir </> ".temp"
-      offlineMode   = True
+      offlineMode   = False
 
   -- 1.) File system setup:
   putStrLn "files system setup..."
@@ -57,11 +56,12 @@ runPitchExtractor = do
       searchYoutube searchQuery maxResults sourceDir
       return ()
 
+  unless offlineMode $ do
+    when sourceMp4Exists $ removeDirectoryRecursive sourceMp4Dir
+    createDirectory sourceMp4Dir
+
   -- 4.) Convert source to 44.1k mp4
   putStrLn "\n creating 44.1k mp4s..."
-  when sourceMp4Exists $ removeDirectoryRecursive sourceMp4Dir
-  createDirectory sourceMp4Dir
-
   sourceDirFiles <- dropDotFiles <$> listDirectory sourceDir
 
   let sourcePathsOrig = fmap (sourceDir </>) sourceDirFiles
