@@ -8,11 +8,11 @@ them to a directory, indexed by note.
 Prerequisites
 ----
 
-	brew install ffmpeg
-	brew install youtube-dl
+    brew install ffmpeg
+    brew install youtube-dl
     brew install haskell-stack
 
-    python -m pip install aubio
+    pip install git+https://github.com/aubio/aubio.git
 
 
 Usage
