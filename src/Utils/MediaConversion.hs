@@ -25,12 +25,12 @@ createWav :: FilePath -> FilePath -> String
 createWav filePath outputPath = concat [
     "ffmpeg -loglevel error "
   , " -i ", filePath
-  , " ", outputPath ]
+  , " "   , outputPath ]
 
 spliceFile :: FilePath -> String -> String -> FilePath -> String
 spliceFile filePath startTime duration outputPath = concat [
     "ffmpeg -loglevel error "
-  , " -ss "       , startTime
-  , " -i "        , filePath
-  , " -t "        , duration
-  , " -c copy "   , outputPath ]
+  , " -ss ", startTime
+  , " -i " , filePath
+  , " -t " , duration
+  , " "    , outputPath ]

@@ -18,7 +18,7 @@ hop_s = 2048 # hop size #512 #win_s/4
 s = source(filename, samplerate, hop_s)
 samplerate = s.samplerate
 
-tolerance = 0.8
+tolerance = 0.2
 
 pitch_o = pitch("yin", win_s, hop_s, samplerate)
 pitch_o.set_unit("midi")
@@ -34,7 +34,7 @@ while True:
     pitch = pitch_o(samples)[0]
     pitch = int(round(pitch))
     confidence = pitch_o.get_confidence()
-    if confidence < 0.9: pitch = 0
+    if confidence < 0.99: pitch = 0
     # print("%f %f %f" % (total_frames / float(samplerate), pitch, confidence))
     pitches += [pitch]
     confidences += [confidence]

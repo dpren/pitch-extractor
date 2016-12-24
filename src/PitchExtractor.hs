@@ -9,7 +9,6 @@ import System.Directory
 import System.Process         (callCommand)
 
 import ExtractPitchTo
--- import ExtractPitchTo_dywa    (extractPitchTo_dywa)
 import YouTubeDownloader      (searchYoutube)
 import Utils.MediaConversion  (convertToMp4)
 import Utils.Misc             (dropDotFiles)
@@ -29,7 +28,7 @@ runPitchExtractor = do
       tempDir       = currentDir </> ".temp"
       offlineMode   = False
 
-  -- 1.) File system setup:
+  -------- File system setup --------
   putStrLn "files system setup..."
   baseExists   <- doesDirectoryExist outputBase
   createDirectoryIfMissing baseExists outputBase
@@ -39,48 +38,45 @@ runPitchExtractor = do
   sourceMp4Exists <- doesDirectoryExist sourceMp4Dir
   tempExists      <- doesDirectoryExist tempDir
 
-  when outputExists    $ removeDirectoryRecursive outputDir
-  when tempExists      $ removeDirectoryRecursive tempDir
 
-  createDirectory outputDir
-  createDirectory outputWavDir
-  createDirectory tempDir
+  -- -------- Download vids --------
+  -- putStrLn "\n downloading vids..."
+  -- -- when sourceExists $ removeDirectoryRecursive sourceDir
+  -- -- createDirectory sourceDir
+  -- searchYoutube searchQuery maxResults sourceDir
+  -- return ()
 
-  -- 2.) Download vids:
-  if offlineMode
-    then unless sourceExists $ error "no source directory found"
-    else do
-      putStrLn "\n downloading vids..."
-      when sourceExists $ removeDirectoryRecursive sourceDir
-      createDirectory sourceDir
-      searchYoutube searchQuery maxResults sourceDir
-      return ()
 
-  unless offlineMode $ do
-    when sourceMp4Exists $ removeDirectoryRecursive sourceMp4Dir
-    createDirectory sourceMp4Dir
+  -------- Convert source to 44.1k mp4 --------
+  -- putStrLn "\ncreating 44.1k mp4s..."
+  -- when sourceMp4Exists $ removeDirectoryRecursive sourceMp4Dir
+  -- createDirectory sourceMp4Dir
 
-  -- 4.) Convert source to 44.1k mp4
-  putStrLn "\n creating 44.1k mp4s..."
   sourceDirFiles <- dropDotFiles <$> listDirectory sourceDir
 
   let sourcePathsOrig = fmap (sourceDir </>) sourceDirFiles
-  let sourcePathsMp4 = fmap (\x -> sourceMp4Dir </> x -<.> ".mp4") sourceDirFiles
+      sourcePathsMp4  = fmap (\x -> sourceMp4Dir </> x -<.> ".mp4") sourceDirFiles
 
-  let sourcePathsBoth = zip sourcePathsOrig sourcePathsMp4
+  --     sourcePathsBoth = zip sourcePathsOrig sourcePathsMp4
+  --
+  -- mapM_ callCommand $ fmap convertToMp4 sourcePathsBoth
 
 
-  mapM_ callCommand $ fmap convertToMp4 sourcePathsBoth
+  -------- Pitch extraction from source-mp4 --------
+  putStrLn "\npitch extraction..."
+  when tempExists $ removeDirectoryRecursive tempDir
+  createDirectory tempDir
+  when outputExists $ removeDirectoryRecursive outputDir
+  createDirectory outputDir
+  createDirectory outputWavDir
 
-  -- 4.) Pitch extraction from mp4 source:
-  putStrLn "\n pitch extraction..."
   mapM_ (extractPitchTo outputDir outputWavDir tempDir) sourcePathsMp4
 
 
-  -- -- 5.) Cleanup:
-  unless offlineMode $ do
-    removeDirectoryRecursive tempDir
-    removeDirectoryRecursive sourceDir
-    -- removeDirectoryRecursive sourceMp4Dir
-
-  putStrLn $ "\n \n Done, successful videos extracted to: " ++ outputDir
+  -- -------- Cleanup --------
+  -- -- unless offlineMode $ do
+  --   -- removeDirectoryRecursive tempDir
+  --   -- removeDirectoryRecursive sourceDir
+  --   -- removeDirectoryRecursive sourceMp4Dir
+  --
+  -- putStrLn $ "\n \n Done, successful videos extracted to: " ++ outputDir

@@ -16,35 +16,35 @@ type Resp = Response (Map String Value)
 api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
 
 download path videoId = callCommand $ mconcat [
-   "youtube-dl -o "
-   , "'", path, "/%(id)s.%(ext)s", "'"
-   -- , " --simulate "
-   , " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
-   , " --min-sleep-interval 1 "
-   , " --max-sleep-interval 20 "
-   , " --no-warnings "
-   , " -- ", videoId]
+  "youtube-dl -o "
+  , "'", path, "/%(id)s.%(ext)s", "'"
+  -- , " --simulate "
+  , " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
+  , " --min-sleep-interval 1 "
+  , " --max-sleep-interval 850 "
+  , " --no-warnings "
+  , " -- ", videoId]
 
 
 searchYoutube :: Text -> Text -> String -> IO ()
 searchYoutube query maxResults path = do
-   let opts = defaults & param "part"            .~ ["snippet"]
-                       & param "key"             .~ [api_key]
-                       & param "maxResults"      .~ [maxResults]
-                       & param "type"            .~ ["video"]
-                       & param "duration"        .~ ["short"]
-                       & param "videoDefinition" .~ ["standard"]
-                     --   & param "order"           .~ ["date"]
-                       & param "q"               .~ [query]
+  let opts = defaults & param "part"            .~ ["snippet"]
+                      & param "key"             .~ [api_key]
+                      & param "maxResults"      .~ [maxResults]
+                      & param "type"            .~ ["video"]
+                      & param "duration"        .~ ["short"]
+                      & param "videoDefinition" .~ ["standard"]
+                    --   & param "order"           .~ ["date"]
+                      & param "q"               .~ ["roland keyboard|korg keyboard"]
 
-   r <- getWith opts "https://www.googleapis.com/youtube/v3/search?"
+  r <- getWith opts "https://www.googleapis.com/youtube/v3/search?"
 
-   let videoIds = r ^.. responseBody . key "items" . values . key "id" . key "videoId" . _String
+  let videoIds = r ^.. responseBody . key "items" . values . key "id" . key "videoId" . _String
 
-   let resultsCount = (r ^.. responseBody . key "pageInfo" . key "totalResults" . _Integer) !! 0
+  let resultsCount = (r ^.. responseBody . key "pageInfo" . key "totalResults" . _Integer) !! 0
 
-   print videoIds
+  print videoIds
 
-   when (resultsCount == 0) (error $ "\n No videos found for:  " ++ (unpack query))
+  when (resultsCount == 0) (error $ "\n No videos found for:  " ++ (unpack query))
 
-   mapM_ ((download path) . Text.unpack) videoIds
+  mapM_ ((download path) . Text.unpack) videoIds
