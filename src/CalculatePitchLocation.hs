@@ -88,3 +88,6 @@ pitchNoteName pitchSeg = freqToNoteName $ median pitchSeg
 
 pitchNoteNameMIDI :: [Double] -> [Char]
 pitchNoteNameMIDI pitchSeg = midiToNoteName $ round $ median pitchSeg
+
+_pitchNoteNameMIDI :: [Double] -> Text
+_pitchNoteNameMIDI pitchSeg = midiToNoteName $ round $ median pitchSeg

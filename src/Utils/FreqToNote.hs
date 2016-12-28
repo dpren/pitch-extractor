@@ -18,5 +18,9 @@ midiToOctave midi = (div midi 12) - 1
 midiToNoteName :: Int -> String
 midiToNoteName midi = (show $ midiToOctave midi) ++ (notes !! (midiToNoteIndex midi))
 
+-- _midiToNoteName :: Int -> Text
+-- _midiToNoteName midi = (show $ midiToOctave midi) ++ (notes !! (midiToNoteIndex midi))
+
+
 freqToNoteName :: Double -> String
 freqToNoteName = midiToNoteName . freqToMidi
