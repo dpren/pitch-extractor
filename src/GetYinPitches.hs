@@ -14,13 +14,8 @@ import TextShow
 import CalculatePitchLocation
 -- import Utils.MediaConversion
 -- import Utils.Misc
-import Data.List.Split (splitOn)
 import Numeric (showFFloat)
 
-
-
--- _strToDbls :: Text -> [Double]
--- _strToDbls = map read . (splitOn ",")
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 
