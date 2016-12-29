@@ -32,6 +32,7 @@ library
                      , lens-aeson
                      , aeson
                      , text
+                     , text-show
                      , bytestring
                      , split
                      , hstats
