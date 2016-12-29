@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module GetYinPitches where
+module GetYinPitches (_getPitches_yin) where
 
 import Data.List
 import qualified Turtle as T
@@ -15,6 +15,7 @@ import CalculatePitchLocation
 -- import Utils.MediaConversion
 -- import Utils.Misc
 import Data.List.Split (splitOn)
+import Numeric (showFFloat)
 
 
 
@@ -26,26 +27,28 @@ parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 _toText :: T.FilePath -> T.Text
 _toText = T.format T.fp
 
--- _formatDouble :: Int -> Double -> String
--- _formatDouble numOfDecimals floatNum = showFFloat (Just numOfDecimals) floatNum ""
+_formatDouble :: Int -> Double -> T.Text
+_formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) floatNum ""
 
--- _createWav :: FilePath -> FilePath -> String
--- _createWav filePath outputPath = concat [
---     "ffmpeg -loglevel error "
---   , " -i ", filePath
---   , " "   , outputPath ]
---
--- _spliceFile :: FilePath -> String -> String -> FilePath -> String
--- _spliceFile filePath startTime duration outputPath = concat [
---     "ffmpeg -loglevel error "
---   , " -ss ", startTime
---   , " -i " , filePath
---   , " -t " , duration
---   , " "    , outputPath ]
+_createWav :: T.FilePath -> T.FilePath -> T.Text
+_createWav filePath outputPath =
+  "ffmpeg -loglevel error "
+  <> " -i " <> (_toText filePath)
+  <> " "    <> (_toText outputPath)
+
+_spliceFile :: T.FilePath -> T.Text -> T.Text -> T.FilePath -> T.Text
+_spliceFile filePath startTime duration outputPath =
+  "ffmpeg -loglevel error "
+  <> " -ss " <> startTime
+  <> " -i "  <> (_toText filePath)
+  <> " -t "  <> duration
+  <> " "     <> (_toText outputPath)
 
 _createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
 _createMonoAudio filePath outputPath =
-    "ffmpeg -loglevel error " <> " -i " <> (_toText filePath) <> " -ar 44.1k -ac 1 " <> (_toText outputPath)
+    "ffmpeg -loglevel error "
+    <> " -i " <> (_toText filePath)
+    <> " -ar 44.1k -ac 1 " <> (_toText outputPath)
 
 
 
@@ -90,18 +93,24 @@ _extractPitchTo outputDir outputWavDir tempDir filePath = do
             wavFilePath = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
 
         case startTime of
-            Just time -> case (duration) > 0.3 of
-                    True  -> do
-                              let _time = showt time
-                              let _duration = showt duration
-                              let _segment = showt segment
-                              -- T.inshellWithErr (_spliceFile filePath _time _duration outputPath) empty
-                              -- T.inshellWithErr (_createWav outputPath wavFilePath) empty
-                              T.echo $ "✔ " <> outputName
-                              -- T.echo $ "     time: " <> _formatDouble 2 time
-                              -- T.echo $ " duration: " <> _formatDouble 2 duration
-                              T.echo $ "  segment: " <> _segment
-                    False -> do
-                              T.echo $ "× " <> (_toText fileName)
-                              T.echo   " skipping: duration too short"
-            Nothing -> putStrLn "longestBin not found"
+          Just time -> case (duration > 0.3) of
+                True  -> do
+                          let _time     = showt time
+                              _duration = showt duration
+                              _segment  = showt segment
+                          spliceCmd <- T.shellStrict (_spliceFile filePath _time _duration outputPath) T.empty
+                          case spliceCmd of
+                            (T.ExitFailure n, err)  -> T.echo err
+                            (T.ExitSuccess, stdout) -> do
+                                                        crtWavCmd <- T.shellStrict (_createWav outputPath wavFilePath) T.empty
+                                                        case crtWavCmd of
+                                                          (T.ExitFailure n, err)  -> T.echo err
+                                                          (T.ExitSuccess, stdout) -> do
+                                                                                      T.echo $ "✔ " <> outputName
+                                                                                      T.echo $ "     time: " <> _formatDouble 2 time
+                                                                                      T.echo $ " duration: " <> _formatDouble 2 duration
+                                                                                      T.echo $ "  segment: " <> _segment
+                False -> do
+                          T.echo $ "× " <> (_toText fileName)
+                          T.echo   " skipping: duration too short"
+          Nothing -> putStrLn "longestBin not found"
