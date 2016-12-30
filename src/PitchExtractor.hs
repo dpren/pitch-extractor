@@ -72,12 +72,12 @@ runPitchExtractor = do
 
   mapM_ callCommand $ fmap convertToMp4 sourcePathsBoth
 
-  -- 4.) Pitch extraction from mp4 source:
+  -- 5.) Pitch extraction from mp4 source:
   putStrLn "\n pitch extraction..."
   mapM_ (extractPitchTo outputDir outputWavDir tempDir) sourcePathsMp4
 
 
-  -- -- 5.) Cleanup:
+  -- 6.) Cleanup:
   unless offlineMode $ do
     removeDirectoryRecursive tempDir
     removeDirectoryRecursive sourceDir

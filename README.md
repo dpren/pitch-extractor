@@ -19,13 +19,13 @@ Usage
 ----
 
     stack build
-    stack exec pitch-extractor-exe "philliesboy681 on the piano" "8"
+    stack exec pitch-extractor-exe "flute exercise" "20"
 
 
 args:
 - search query
 - max videos to download (< 50)
 
-(downloading can take a while)
+(it takes a while)
 
 outputs to -> `/vid-ouput/<search query>`

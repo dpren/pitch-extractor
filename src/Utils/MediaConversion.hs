@@ -33,4 +33,4 @@ spliceFile filePath startTime duration outputPath = concat [
   , " -ss "       , startTime
   , " -i "        , filePath
   , " -t "        , duration
-  , " -c copy "   , outputPath ]
+  , " "   , outputPath ]
