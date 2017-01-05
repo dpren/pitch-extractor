@@ -27,7 +27,6 @@ runPitchExtractor = do
       sourceDir     = currentDir </> "vid-source"
       sourceMp4Dir  = currentDir </> "vid-source-mp4"
       tempDir       = currentDir </> ".temp"
-      offlineMode   = False
 
   -- 1.) File system setup:
   putStrLn "files system setup..."
@@ -47,20 +46,16 @@ runPitchExtractor = do
   createDirectory tempDir
 
   -- 2.) Download vids:
-  if offlineMode
-    then unless sourceExists $ error "no source directory found"
-    else do
-      putStrLn "\n downloading vids..."
-      when sourceExists $ removeDirectoryRecursive sourceDir
-      createDirectory sourceDir
-      searchYoutube searchQuery maxResults sourceDir
-      return ()
+  putStrLn "\n downloading vids..."
+  when sourceExists $ removeDirectoryRecursive sourceDir
+  createDirectory sourceDir
+  searchYoutube searchQuery maxResults sourceDir
+  return ()
 
-  unless offlineMode $ do
-    when sourceMp4Exists $ removeDirectoryRecursive sourceMp4Dir
-    createDirectory sourceMp4Dir
+  -- 3.) Convert source to 44.1k mp4
+  when sourceMp4Exists $ removeDirectoryRecursive sourceMp4Dir
+  createDirectory sourceMp4Dir
 
-  -- 4.) Convert source to 44.1k mp4
   putStrLn "\n creating 44.1k mp4s..."
   sourceDirFiles <- dropDotFiles <$> listDirectory sourceDir
 
@@ -72,15 +67,14 @@ runPitchExtractor = do
 
   mapM_ callCommand $ fmap convertToMp4 sourcePathsBoth
 
-  -- 5.) Pitch extraction from mp4 source:
+  -- 4.) Pitch extraction from mp4 source:
   putStrLn "\n pitch extraction..."
   mapM_ (extractPitchTo outputDir outputWavDir tempDir) sourcePathsMp4
 
 
-  -- 6.) Cleanup:
-  unless offlineMode $ do
-    removeDirectoryRecursive tempDir
-    removeDirectoryRecursive sourceDir
-    -- removeDirectoryRecursive sourceMp4Dir
+  -- 5.) Cleanup:
+  removeDirectoryRecursive tempDir
+  removeDirectoryRecursive sourceDir
+  -- removeDirectoryRecursive sourceMp4Dir
 
   putStrLn $ "\n \n Done, successful videos extracted to: " ++ outputDir
