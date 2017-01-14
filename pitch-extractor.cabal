@@ -39,6 +39,7 @@ library
                      , containers
                      , system-filepath
                      , turtle
+                     , foldl
 
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings

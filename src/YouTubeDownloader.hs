@@ -21,7 +21,7 @@ download path videoId = callCommand $ mconcat [
   -- , " --simulate "
   , " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
   , " --min-sleep-interval 1 "
-  , " --max-sleep-interval 850 "
+  , " --max-sleep-interval 100 "
   , " --no-warnings "
   , " -- ", videoId]
 

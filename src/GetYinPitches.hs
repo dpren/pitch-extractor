@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-
-module GetYinPitches (_getPitches_yin) where
+module GetYinPitches
+  -- (_extractPitchTo)
+  where
 
 import Data.List
 import qualified Turtle as T
@@ -19,8 +19,8 @@ import Numeric (showFFloat)
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 
-_toText :: T.FilePath -> T.Text
-_toText = T.format T.fp
+toText' :: T.FilePath -> T.Text
+toText' = T.format T.fp
 
 _formatDouble :: Int -> Double -> T.Text
 _formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) floatNum ""
@@ -28,22 +28,22 @@ _formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) f
 _createWav :: T.FilePath -> T.FilePath -> T.Text
 _createWav filePath outputPath =
   "ffmpeg -loglevel error "
-  <> " -i " <> (_toText filePath)
-  <> " "    <> (_toText outputPath)
+  <> " -i " <> (toText' filePath)
+  <> " "    <> (toText' outputPath)
 
 _spliceFile :: T.FilePath -> T.Text -> T.Text -> T.FilePath -> T.Text
 _spliceFile filePath startTime duration outputPath =
   "ffmpeg -loglevel error "
   <> " -ss " <> startTime
-  <> " -i "  <> (_toText filePath)
+  <> " -i "  <> (toText' filePath)
   <> " -t "  <> duration
-  <> " "     <> (_toText outputPath)
+  <> " "     <> (toText' outputPath)
 
 _createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
 _createMonoAudio filePath outputPath =
     "ffmpeg -loglevel error "
-    <> " -i " <> (_toText filePath)
-    <> " -ar 44.1k -ac 1 " <> (_toText outputPath)
+    <> " -i " <> (toText' filePath)
+    <> " -ar 44.1k -ac 1 " <> (toText' outputPath)
 
 
 
@@ -58,7 +58,7 @@ _getPitches_yin filePath tempPath = do
                       T.echo err
                       return Nothing
     (T.ExitSuccess, stdout) -> do
-                      yin_pitches <- T.procStrict "/usr/local/bin/python" ["yin_pitch.py", (T.format T.fp monoFilePath)] T.empty
+                      yin_pitches <- T.procStrict "/usr/local/bin/python" ["yin_pitch.py", (toText' monoFilePath)] T.empty
                       case yin_pitches of
                         (T.ExitFailure n, err) -> do
                                               T.echo err
@@ -83,7 +83,7 @@ _extractPitchTo outputDir outputWavDir tempDir filePath = do
             startTime   = pitchStartTime bins
             duration    = computeTime segment
             noteName    = _pitchNoteNameMIDI segment
-            outputName  = noteName <> "__" <> (_toText fileName)
+            outputName  = noteName <> "__" <> (toText' fileName)
             outputPath  = outputDir </> (Path.fromText outputName)
             wavFilePath = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
 
@@ -106,6 +106,6 @@ _extractPitchTo outputDir outputWavDir tempDir filePath = do
                                                                                       T.echo $ " duration: " <> _formatDouble 2 duration
                                                                                       T.echo $ "  segment: " <> _segment
                 False -> do
-                          T.echo $ "× " <> (_toText fileName)
+                          T.echo $ "× " <> (toText' fileName)
                           T.echo   " skipping: duration too short"
           Nothing -> putStrLn "longestBin not found"
