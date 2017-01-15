@@ -23,8 +23,8 @@ import YouTubeDownloader      (searchYoutube)
 
 convertToMp4' :: (T.FilePath, T.FilePath) -> Text
 convertToMp4' paths = "ffmpeg -loglevel error"
-  <> " -i "        <> fst paths
-  <> " -ar 44.1k " <> snd paths
+  <> " -i "        <> toText' (fst paths)
+  <> " -ar 44.1k " <> toText' (snd paths)
 
 
 -- let cmNums = P.zip cms nums
@@ -56,11 +56,11 @@ mkdirDestructive path = do
   when dirExists (T.rmtree path)
   T.mkdir path
 
-exec :: T.MonadIO io => Text -> io (ExitCode, Text)
+exec :: T.MonadIO io => Text -> io (T.ExitCode, Text)
 exec = (flip T.shellStrict T.empty)
 
-wasSuccessful :: (ExitCode, b) -> Bool
-wasSuccessful a = (fst a) == ExitSuccess
+wasSuccessful :: (T.ExitCode, b) -> Bool
+wasSuccessful a = (fst a) == T.ExitSuccess
 
 
 runPitchExtractor :: IO ()
@@ -112,15 +112,16 @@ runPitchExtractor = do
       sourcePathsMp4  = map (\x -> sourceMp4Dir </> x `replaceExtension` ".mp4") sourceDirFiles
       sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
 
-      convToMp4Cmds :: [(Text, T.FilePath)]
-      convToMp4Cmds = zip (map convertToMp4' sourcePathsInOut) sourcePathsMp4
+      -- convToMp4Cmds :: [(Text, T.FilePath)]
+      -- commands = (map convertToMp4' sourcePathsInOut)
+      convToMp4Cmds = map convertToMp4' sourcePathsInOut
 
   outputs <- mapM exec convToMp4Cmds
 
-  outputsWithPath :: [((ExitCode, Text), T.FilePath)]
+  -- outputsWithPath :: [((T.ExitCode, Text), T.FilePath)]
   let outputsWithPath = zip outputs sourcePathsMp4
 
-  successfulMp4Paths :: [T.FilePath]
+  -- successfulMp4Paths :: [T.FilePath]
   let successfulMp4Paths = map snd $ filter (wasSuccessful . fst) outputsWithPath
 
 
