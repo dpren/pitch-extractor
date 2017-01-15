@@ -25,7 +25,7 @@ download path videoId = exec $
   <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
   <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
   <> " --min-sleep-interval 1 "
-  <> " --max-sleep-interval 700 "
+  <> " --max-sleep-interval 600 "
   <> " --no-warnings "
   <> " -- " <> videoId
 
@@ -39,7 +39,7 @@ searchYoutube query maxResults path = do
                       & param "duration"        .~ ["short"]
                       -- & param "videoDefinition" .~ ["standard"]
                       & param "order"           .~ ["date"]
-                      & param "q"               .~ ["roland keyboard|korg keyboard"]
+                      & param "q"               .~ [query]
 
   r <- getWith opts "https://www.googleapis.com/youtube/v3/search?"
 
