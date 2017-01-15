@@ -26,6 +26,24 @@ convertToMp4' paths = "ffmpeg -loglevel error"
   <> " -i "        <> fst paths
   <> " -ar 44.1k " <> snd paths
 
+
+-- let cmNums = P.zip cms nums
+-- let cmds = P.zip cms nums
+-- resNums <- mapM (exec . fst) cmNums
+
+-- let exec = (flip Turtle.shellStrict Turtle.empty)
+-- let ltrs = ["a", "b", "`", "d"] :: [Text]
+-- let nums = ["1", "2", "3", "4"] :: [Text]
+-- let cmd ab = ("echo " :: Text) <> fst ab <> snd ab
+-- let cms = P.map cmd $ P.zip ltrs nums
+-- res <- mapM exec cms
+-- P.zip res nums
+
+
+
+
+
+
 isDotFile :: T.FilePath -> Bool
 isDotFile x = Text.head (toText' x) /= '.'
 
@@ -37,6 +55,12 @@ mkdirDestructive path = do
   dirExists <- T.testdir path
   when dirExists (T.rmtree path)
   T.mkdir path
+
+exec :: T.MonadIO io => Text -> io (ExitCode, Text)
+exec = (flip T.shellStrict T.empty)
+
+wasSuccessful :: (ExitCode, b) -> Bool
+wasSuccessful a = (fst a) == ExitSuccess
 
 
 runPitchExtractor :: IO ()
@@ -81,36 +105,33 @@ runPitchExtractor = do
 
   -- mkdirDestructive sourceMp4Dir
 
-
   sourceDirFilesAll <- map T.filename <$> (T.fold (T.ls sourceDir) F.list)
+
   let sourceDirFiles  = dropDotFiles' sourceDirFilesAll
-      sourcePathsOrig = fmap (sourceDir </>) sourceDirFiles
-      sourcePathsMp4  = fmap (\x -> sourceMp4Dir </> x `replaceExtension` ".mp4") sourceDirFiles
-      sourcePathsBoth = zip sourcePathsOrig sourcePathsMp4
+      sourcePathsOrig = map (sourceDir </>) sourceDirFiles
+      sourcePathsMp4  = map (\x -> sourceMp4Dir </> x `replaceExtension` ".mp4") sourceDirFiles
+      sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
 
+      convToMp4Cmds :: [(Text, T.FilePath)]
+      convToMp4Cmds = zip (map convertToMp4' sourcePathsInOut) sourcePathsMp4
 
-  -- mapM_ callCommand $ fmap convertToMp4' sourcePathsBoth
+  outputs <- mapM exec convToMp4Cmds
 
-  cmd <- T.shellStrict (convertToMp4' sourcePathsBoth) T.empty
+  outputsWithPath :: [((ExitCode, Text), T.FilePath)]
+  let outputsWithPath = zip outputs sourcePathsMp4
 
-  cmd <- T.shellStrict (_createWav outputPath wavFilePath) T.empty
-  case cmd of
-    (T.ExitFailure n, err)  -> T.echo err
-    (T.ExitSuccess, stdout) -> do
+  successfulMp4Paths :: [T.FilePath]
+  let successfulMp4Paths = map snd $ filter (wasSuccessful . fst) outputsWithPath
+
 
   -------- Pitch extraction from source-mp4 --------
   putStrLn "\npitch extraction..."
-  --removeDirectoryRecursive
-  -- when tempExists (T.rmtree tempDir)
-  -- when outputExists (T.rmtree outputDir)
-  -- T.mkdir tempDir
-  -- T.mkdir outputDir
   mkdirDestructive tempDir
   mkdirDestructive outputDir
-  T.mkdir outputWavDir
+  T.mkdir          outputWavDir
 
 
-  -- mapM_ (_extractPitchTo outputDir outputWavDir tempDir) sourcePathsMp4
+  mapM_ (_extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
 
 
   -- -------- Cleanup --------
