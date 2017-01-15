@@ -63,7 +63,7 @@ dropOutliers :: [[Double]] -> [[Double]]
 dropOutliers = fmap (takeWhile (\x -> x > 55 && x < 2000))
 
 dropMIDIOutliers :: [[Double]] -> [[Double]]
-dropMIDIOutliers = fmap (takeWhile (\x -> x > 11))
+dropMIDIOutliers = fmap (takeWhile (\x -> x > 19 && x < 79)) -- G1 - G6
 
 
 -- | totalNumOfSamples / samplesPerSecond = total seconds

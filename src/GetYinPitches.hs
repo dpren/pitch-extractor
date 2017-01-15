@@ -45,27 +45,27 @@ _createMonoAudio filePath outputPath =
     <> " -i " <> (toText' filePath)
     <> " -ar 44.1k -ac 1 " <> (toText' outputPath)
 
+pythonPath = "/usr/local/bin/python"
 
 
-_getPitches_yin :: T.FilePath -> T.FilePath -> IO (Maybe [[Double]])
+_getPitches_yin :: T.FilePath -> T.FilePath -> IO (Either T.Text [[Double]])
 _getPitches_yin filePath tempPath = do
   let monoFilePath = tempPath `replaceExtension` ".wav"
-  -- let yinCmd = "/usr/local/bin/python" ["yin_pitch.py", monoFilePath]
+      monoAudioCmd = _createMonoAudio filePath monoFilePath
+      yinCmd       = ["yin_pitch.py", (toText' monoFilePath)]
 
-  monoAudioCmd <- T.shellStrict (_createMonoAudio filePath monoFilePath) T.empty
-  case monoAudioCmd of
-    (T.ExitFailure n, err) -> do
-                      T.echo err
-                      return Nothing
+  cmdOutput <- T.shellStrict monoAudioCmd T.empty
+  case cmdOutput of
+    (T.ExitFailure n, err)  -> return (Left (err <> " (createMonoAudio)"))
     (T.ExitSuccess, stdout) -> do
-                      yin_pitches <- T.procStrict "/usr/local/bin/python" ["yin_pitch.py", (toText' monoFilePath)] T.empty
+
+                      yin_pitches <- T.procStrict pythonPath yinCmd T.empty
                       case yin_pitches of
-                        (T.ExitFailure n, err) -> do
-                                              T.echo err
-                                              return Nothing
+                        (T.ExitFailure n, err)   -> return (Left (err <> " (yin_pitch.py)"))
                         (T.ExitSuccess, pitches) -> do
-                                              let bins = groupByEq (parseOutput pitches)
-                                              return (Just bins)
+
+                                            let bins = groupByEq (parseOutput pitches)
+                                            return (Right bins)
 
 
 
@@ -74,16 +74,18 @@ _extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> T.FilePath -> IO ()
 _extractPitchTo outputDir outputWavDir tempDir filePath = do
   let fileName = filename filePath
       tempPath = tempDir </> fileName
+      fNameTxt = toText' fileName
+      errMsg e = T.echo $ "× " <> fNameTxt <> " Error:\n  " <> e
 
   bins <- _getPitches_yin filePath tempPath
   case bins of
-    Nothing -> T.echo "yin pitches not found"
-    Just bins -> do
+    Left yinErr -> errMsg yinErr
+    Right bins -> do
         let segment     = longestPitchSeg bins
             startTime   = pitchStartTime bins
             duration    = computeTime segment
             noteName    = _pitchNoteNameMIDI segment
-            outputName  = noteName <> "__" <> (toText' fileName)
+            outputName  = noteName <> "__" <> fNameTxt
             outputPath  = outputDir </> (Path.fromText outputName)
             wavFilePath = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
 
@@ -95,17 +97,17 @@ _extractPitchTo outputDir outputWavDir tempDir filePath = do
                               _segment  = showt segment
                           spliceCmd <- T.shellStrict (_spliceFile filePath _time _duration outputPath) T.empty
                           case spliceCmd of
-                            (T.ExitFailure n, err)  -> T.echo err
+                            (T.ExitFailure n, err)  -> errMsg err
                             (T.ExitSuccess, stdout) -> do
                                                         crtWavCmd <- T.shellStrict (_createWav outputPath wavFilePath) T.empty
                                                         case crtWavCmd of
-                                                          (T.ExitFailure n, err)  -> T.echo err
+                                                          (T.ExitFailure n, err)  -> errMsg err
                                                           (T.ExitSuccess, stdout) -> do
                                                                                       T.echo $ "✔ " <> outputName
                                                                                       T.echo $ "     time: " <> _formatDouble 2 time
                                                                                       T.echo $ " duration: " <> _formatDouble 2 duration
                                                                                       T.echo $ "  segment: " <> _segment
                 False -> do
-                          T.echo $ "× " <> (toText' fileName)
+                          T.echo $ "× " <> fNameTxt
                           T.echo   " skipping: duration too short"
-          Nothing -> putStrLn "longestBin not found"
+          Nothing -> errMsg "longestBin not found"
