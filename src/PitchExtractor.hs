@@ -11,30 +11,22 @@ import TextShow
 import Control.Monad      (when, unless)
 
 import ExtractPitchTo
-import GetYinPitches      (_extractPitchTo, toText')
+import GetYinPitches      (_extractPitchTo)
 import YouTubeDownloader  (searchYoutube)
 -- import Utils.MediaConversion  (convertToMp4)
--- import Utils.Misc             (dropDotFiles)
+import Utils.Misc         (toTxt, exec, dropDotFiles)
+
 
 convertToMp4' :: (T.FilePath, T.FilePath) -> Text
 convertToMp4' paths = "ffmpeg -loglevel error"
-  <> " -i "        <> toText' (fst paths)
-  <> " -ar 44.1k " <> toText' (snd paths)
-
-isDotFile :: T.FilePath -> Bool
-isDotFile x = Text.head (toText' x) /= '.'
-
-dropDotFiles' :: [T.FilePath] -> [T.FilePath]
-dropDotFiles' = filter isDotFile
+  <> " -i "        <> toTxt (fst paths)
+  <> " -ar 44.1k " <> toTxt (snd paths)
 
 mkdirDestructive :: T.MonadIO io => T.FilePath -> io ()
 mkdirDestructive path = do
   dirExists <- T.testdir path
   when dirExists (T.rmtree path)
   T.mkdir path
-
-exec :: T.MonadIO io => Text -> io (T.ExitCode, Text)
-exec = (flip T.shellStrict T.empty)
 
 wasSuccessful :: (T.ExitCode, b) -> Bool
 wasSuccessful a = (fst a) == T.ExitSuccess
@@ -60,9 +52,9 @@ runPitchExtractor = do
 
 
   -- -------- Download vids --------
-  -- T.echo "\n downloading vids..."
-  -- mkdirDestructive sourceDir
-  -- searchYoutube searchQuery maxResults sourceDir
+  T.echo "\n downloading vids..."
+  mkdirDestructive sourceDir
+  searchYoutube searchQuery maxResults sourceDir
 
 
   -------- Convert source to 44.1k mp4 --------
@@ -71,7 +63,7 @@ runPitchExtractor = do
 
   sourceDirAllFiles <- map T.filename <$> (T.fold (T.ls sourceDir) F.list)
 
-  let sourceDirFiles   = dropDotFiles' sourceDirAllFiles
+  let sourceDirFiles   = dropDotFiles sourceDirAllFiles
       sourcePathsOrig  = map (sourceDir </>) sourceDirFiles
       sourcePathsMp4   = map (\x -> sourceMp4Dir </> x `replaceExtension` "mp4") sourceDirFiles
       sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
@@ -104,4 +96,4 @@ runPitchExtractor = do
   -- T.rmtree sourceDir
   -- T.rmtree sourceMp4Dir
 
-  T.echo $ "\n\n Done, successful videos extracted to: " <> (toText' outputDir)
+  T.echo $ "\n\n Done, successful videos extracted to: " <> (toTxt outputDir)

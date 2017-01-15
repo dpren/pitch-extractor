@@ -8,19 +8,15 @@ import Prelude hiding (FilePath)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid ((<>))
 import TextShow
+import Numeric (showFFloat)
 
--- import System.FilePath ((-<.>), (</>), takeFileName)
--- import System.Process  (callCommand)
 import CalculatePitchLocation
 -- import Utils.MediaConversion
--- import Utils.Misc
-import Numeric (showFFloat)
+import Utils.Misc (toTxt)
 
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 
-toText' :: T.FilePath -> T.Text
-toText' = T.format T.fp
 
 _formatDouble :: Int -> Double -> T.Text
 _formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) floatNum ""
@@ -28,22 +24,22 @@ _formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) f
 _createWav :: T.FilePath -> T.FilePath -> T.Text
 _createWav filePath outputPath =
   "ffmpeg -loglevel error "
-  <> " -i " <> (toText' filePath)
-  <> " "    <> (toText' outputPath)
+  <> " -i " <> (toTxt filePath)
+  <> " "    <> (toTxt outputPath)
 
 _spliceFile :: T.FilePath -> T.Text -> T.Text -> T.FilePath -> T.Text
 _spliceFile filePath startTime duration outputPath =
   "ffmpeg -loglevel error "
   <> " -ss " <> startTime
-  <> " -i "  <> (toText' filePath)
+  <> " -i "  <> (toTxt filePath)
   <> " -t "  <> duration
-  <> " "     <> (toText' outputPath)
+  <> " "     <> (toTxt outputPath)
 
 _createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
 _createMonoAudio filePath outputPath =
     "ffmpeg -loglevel error "
-    <> " -i " <> (toText' filePath)
-    <> " -ar 44.1k -ac 1 " <> (toText' outputPath)
+    <> " -i " <> (toTxt filePath)
+    <> " -ar 44.1k -ac 1 " <> (toTxt outputPath)
 
 pythonPath = "/usr/local/bin/python"
 
@@ -52,7 +48,7 @@ _getPitches_yin :: T.FilePath -> T.FilePath -> IO (Either T.Text [[Double]])
 _getPitches_yin filePath tempPath = do
   let monoFilePath = tempPath `replaceExtension` ".wav"
       monoAudioCmd = _createMonoAudio filePath monoFilePath
-      yinCmd       = ["yin_pitch.py", (toText' monoFilePath)]
+      yinCmd       = ["yin_pitch.py", (toTxt monoFilePath)]
 
   cmdOutput <- T.shellStrict monoAudioCmd T.empty
   case cmdOutput of
@@ -74,7 +70,7 @@ _extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> T.FilePath -> IO ()
 _extractPitchTo outputDir outputWavDir tempDir filePath = do
   let fileName = filename filePath
       tempPath = tempDir </> fileName
-      fNameTxt = toText' fileName
+      fNameTxt = toTxt fileName
       errMsg e = T.echo $ "× " <> fNameTxt <> " Error:\n  " <> e
 
   bins <- _getPitches_yin filePath tempPath
