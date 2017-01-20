@@ -7,8 +7,8 @@ import qualified Turtle as T
 import Prelude hiding (FilePath)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid ((<>))
-import TextShow
-import Numeric (showFFloat)
+import TextShow    (showt)
+import Numeric     (showFFloat)
 
 import CalculatePitchLocation
 -- import Utils.MediaConversion
@@ -65,7 +65,6 @@ _getPitches_yin filePath tempPath = do
 
 
 
--- extractPitchTo :: FilePath -> FilePath -> FilePath -> FilePath -> IO ()
 _extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> T.FilePath -> IO ()
 _extractPitchTo outputDir outputWavDir tempDir filePath = do
   let fileName = filename filePath
@@ -80,8 +79,8 @@ _extractPitchTo outputDir outputWavDir tempDir filePath = do
         let segment     = longestPitchSeg bins
             startTime   = pitchStartTime bins
             duration    = computeTime segment
-            noteName    = _pitchNoteNameMIDI segment
-            outputName  = noteName <> "__" <> fNameTxt
+            midiNote    = showt (head segment)
+            outputName  = midiNote <> "__" <> fNameTxt
             outputPath  = outputDir </> (Path.fromText outputName)
             wavFilePath = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
 
