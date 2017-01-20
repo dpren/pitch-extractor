@@ -4,7 +4,6 @@ import PitchTrack.Track       (trackFileToList)
 import Data.List
 import Data.Function          (on)
 import Data.Fixed             (mod')
-import Data.Text              (Text)
 import Numeric.Statistics
 
 import Utils.FreqToNote
@@ -89,6 +88,3 @@ pitchNoteName pitchSeg = freqToNoteName $ median pitchSeg
 
 pitchNoteNameMIDI :: [Double] -> [Char]
 pitchNoteNameMIDI pitchSeg = midiToNoteName $ round $ median pitchSeg
-
-_pitchNoteNameMIDI :: [Double] -> Text
-_pitchNoteNameMIDI pitchSeg = _midiToNoteName $ round $ median pitchSeg

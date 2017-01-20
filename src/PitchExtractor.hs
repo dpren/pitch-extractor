@@ -10,8 +10,7 @@ import Data.Monoid        ((<>))
 import TextShow
 import Control.Monad      (when, unless)
 
-import ExtractPitchTo
-import GetYinPitches      (_extractPitchTo)
+import GetYinPitches      (extractPitchTo)
 import YouTubeDownloader  (searchYoutube)
 -- import Utils.MediaConversion  (convertToMp4)
 import Utils.Misc         (toTxt, exec, dropDotFiles)
@@ -51,7 +50,7 @@ runPitchExtractor = do
   unless baseAlreadyExists (T.mkdir outputBase)
 
 
-  -- -------- Download vids --------
+  -------- Download vids --------
   T.echo "\n downloading vids..."
   mkdirDestructive sourceDir
   searchYoutube searchQuery maxResults sourceDir
@@ -88,7 +87,7 @@ runPitchExtractor = do
   T.mkdir          outputWavDir
 
 
-  mapM_ (_extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
+  mapM_ (extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
 
 
   -- -------- Cleanup --------

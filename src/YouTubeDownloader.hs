@@ -25,7 +25,7 @@ download path videoId = exec $
   <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
   <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
   <> " --min-sleep-interval 1 "
-  <> " --max-sleep-interval 600 "
+  <> " --max-sleep-interval 200 "
   <> " --no-warnings "
   <> " -- " <> videoId
 
