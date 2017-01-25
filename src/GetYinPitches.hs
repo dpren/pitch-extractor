@@ -64,10 +64,28 @@ _getPitches_yin filePath tempPath = do
           return (Right bins)
 
 
-eith :: (T.ExitCode, T.Text) -> (Either T.Text T.Text)
+
+-- eith :: Either T.Text T.Text -> (Either T.Text T.Text -> (T.ExitCode, T.Text)) -> Either T.Text T.Text
+-- eith output cmd = case output of
+--   Left err -> Left err
+--   Right stdout -> Right cmd stdout
+
+
+eith :: (T.ExitCode, T.Text) -> Either T.Text T.Text
 eith output = case output of
   (T.ExitFailure n, err) -> Left err
   (T.ExitSuccess, stdout) -> Right stdout
+
+
+-- newtype Executor a = Ex (Either String a)
+
+-- instance Monad Execute where
+--   (Ex output) >>= cmd =
+--     case output of
+--       Left err -> Ex (Left err)
+--       Right stdout -> cmd stdout
+--   return stdout = Ex (Right stdout)
+--   fail err = Ex (Left err)
 
 
 -- shellThing :: T.MonadIO io => io (T.ExitCode, T.Text) -> (T.ExitCode, T.Text) -> io (T.ExitCode, T.Text)
@@ -98,7 +116,7 @@ extractPitchTo outputDir outputWavDir tempDir filePath = do
         let segment     = longestPitchSeg bins
             startTime   = pitchStartTime bins
             duration    = computeTime segment
-            midiNote    = showt (head segment)
+            midiNote    = showt ((truncate $ head segment) :: Int)
             outputName  = midiNote <> "__" <> fileName
             outputPath  = outputDir </> (Path.fromText outputName)
             wavFilePath = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"

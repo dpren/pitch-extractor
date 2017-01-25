@@ -51,7 +51,7 @@ runPitchExtractor = do
 
 
   -------- Download vids --------
-  T.echo "\n downloading vids..."
+  T.echo "\ndownloading vids..."
   mkdirDestructive sourceDir
   searchYoutube searchQuery maxResults sourceDir
 
@@ -95,4 +95,4 @@ runPitchExtractor = do
   -- T.rmtree sourceDir
   -- T.rmtree sourceMp4Dir
 
-  T.echo $ "\n\n Done, successful videos extracted to: " <> (toTxt outputDir)
+  T.echo $ "\n\nDone, successful videos extracted to: " <> (toTxt outputDir)
