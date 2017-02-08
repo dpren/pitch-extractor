@@ -27,11 +27,13 @@ download path videoId = exec $
   <> " --min-sleep-interval 1 "
   <> " --max-sleep-interval 200 "
   <> " --no-warnings "
+  <> " --abort-on-error "
+  -- <> " --ignore-errors "
   <> " -- " <> videoId
 
 
-searchYoutube :: Text -> Text -> T.FilePath -> IO ()
-searchYoutube query maxResults path = do
+searchYoutube :: Text -> Text -> IO [Text]
+searchYoutube query maxResults = do
   let opts = defaults & param "part"            .~ ["snippet"]
                       & param "key"             .~ [api_key]
                       & param "maxResults"      .~ [maxResults]
@@ -45,10 +47,8 @@ searchYoutube query maxResults path = do
 
   let videoIds = r ^.. responseBody . key "items" . values . key "id" . key "videoId" . _String
 
-  let resultsCount = (r ^.. responseBody . key "pageInfo" . key "totalResults" . _Integer) !! 0
-
-  print videoIds
+  let resultsCount = length videoIds
 
   when (resultsCount == 0) (error $ "\n No videos found for:  " ++ (unpack query))
 
-  mapM_ (download path) videoIds
+  return videoIds

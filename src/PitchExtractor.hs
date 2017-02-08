@@ -11,7 +11,7 @@ import TextShow
 import Control.Monad      (when, unless)
 
 import GetYinPitches      (extractPitchTo)
-import YouTubeDownloader  (searchYoutube)
+import YouTubeDownloader  (searchYoutube, download)
 -- import Utils.MediaConversion  (convertToMp4)
 import Utils.Misc         (toTxt, exec, dropDotFiles)
 
@@ -53,8 +53,9 @@ runPitchExtractor = do
   -------- Download vids --------
   T.echo "\ndownloading vids..."
   mkdirDestructive sourceDir
-  searchYoutube searchQuery maxResults sourceDir
-
+  videoIds <- searchYoutube searchQuery maxResults
+  print videoIds
+  mapM_ (download sourceDir) videoIds
 
   -------- Convert source to 44.1k mp4 --------
   T.echo "\ncreating 44.1k mp4s..."
