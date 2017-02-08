@@ -1,13 +1,15 @@
 module Utils.Misc where
 
-import Numeric (showFFloat)
-import Data.List.Split (splitOn)
+import Numeric           (showFFloat)
+import Data.List.Split   (splitOn)
 import qualified Turtle as T
-import Data.Text as Text  (pack, unpack, replace, head, Text)
+import Data.Text as Text (pack, unpack, replace, head, Text)
+import TextShow          (showt)
+import Numeric           (showFFloat)
 
 
-formatDouble :: Int -> Double -> String
-formatDouble numOfDecimals floatNum = showFFloat (Just numOfDecimals) floatNum ""
+formatDouble :: Int -> Double -> T.Text
+formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) floatNum ""
 
 strToDbls :: String -> [Double]
 strToDbls = map read . (splitOn ",")
@@ -23,4 +25,4 @@ dropDotFiles :: [T.FilePath] -> [T.FilePath]
 dropDotFiles = filter isDotFile
 
 exec :: T.MonadIO io => Text -> io (T.ExitCode, Text)
-exec = (flip T.shellStrict T.empty)
+exec cmd = T.shellStrict cmd T.empty

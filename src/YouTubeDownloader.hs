@@ -9,7 +9,6 @@ import Data.ByteString.Lazy as SL (putStrLn)
 import Data.Text as Text          (pack, unpack, Text)
 import Control.Monad              (when, unless)
 import Data.Monoid                ((<>))
-import System.Process
 
 import qualified Turtle as T
 import Prelude hiding             (FilePath)

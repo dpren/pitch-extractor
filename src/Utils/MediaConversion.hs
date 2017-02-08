@@ -1,36 +1,30 @@
 module Utils.MediaConversion where
 
-convertToMp4 :: (FilePath, FilePath) -> String
-convertToMp4 paths = concat [
-    "ffmpeg -loglevel error"
-  , " -i ", fst paths
-  , " -ar 44.1k ", snd paths ]
+import qualified Turtle as T
+import Utils.Misc (toTxt, exec)
+import Data.Monoid ((<>))
 
+convertToMp4 :: (T.FilePath, T.FilePath) -> T.Text
+convertToMp4 paths = "ffmpeg -loglevel error"
+  <> " -i "        <> toTxt (fst paths)
+  <> " -ar 44.1k " <> toTxt (snd paths)
 
-createRaw :: FilePath -> FilePath -> String
-createRaw filePath outputPath = concat [
+createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
+createMonoAudio filePath outputPath =
     "ffmpeg -loglevel error "
-  , " -i ", filePath
-  , " -f f64le -ar 44.1k -ac 1 ", outputPath ]
+    <> " -i " <> (toTxt filePath)
+    <> " -ar 44.1k -ac 1 " <> (toTxt outputPath)
 
+createWav :: T.FilePath -> T.FilePath -> T.Text
+createWav filePath outputPath =
+  "ffmpeg -loglevel error "
+  <> " -i " <> (toTxt filePath)
+  <> " "    <> (toTxt outputPath)
 
-createMonoAudio :: FilePath -> FilePath -> String
-createMonoAudio filePath outputPath = concat [
-    "ffmpeg -loglevel error "
-  , " -i ", filePath
-  , " -ar 44.1k -ac 1 ", outputPath ]
-
-
-createWav :: FilePath -> FilePath -> String
-createWav filePath outputPath = concat [
-    "ffmpeg -loglevel error "
-  , " -i ", filePath
-  , " "   , outputPath ]
-
-spliceFile :: FilePath -> String -> String -> FilePath -> String
-spliceFile filePath startTime duration outputPath = concat [
-    "ffmpeg -loglevel error "
-  , " -ss ", startTime
-  , " -i " , filePath
-  , " -t " , duration
-  , " "    , outputPath ]
+spliceFile :: T.FilePath -> T.Text -> T.Text -> T.FilePath -> T.Text
+spliceFile filePath startTime duration outputPath =
+  "ffmpeg -loglevel error "
+  <> " -ss " <> startTime
+  <> " -i "  <> (toTxt filePath)
+  <> " -t "  <> duration
+  <> " "     <> (toTxt outputPath)

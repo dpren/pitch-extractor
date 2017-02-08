@@ -15,7 +15,8 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-6.15
+# resolver: nightly-2017-02-08
+resolver: lts-7.9
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -40,11 +41,11 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- dywapitchtrack-0.1.0.1
-- pitchtrack-0.1.0.1
-- directory-1.2.5.1
 - wreq-0.4.1.0
-- hstats-0.3.0.1
+# - dywapitchtrack-0.1.0.1
+# - pitchtrack-0.1.0.1
+# - directory-1.2.5.1
+# - hstats-0.3.0.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}

@@ -1,25 +1,20 @@
 module PitchExtractor where
 
 import Data.List
-import Data.Text as Text  (pack, unpack, replace, head, Text)
+import Data.Text as Text     (pack, unpack, replace, head, Text)
 import qualified Control.Foldl as F
 import qualified Turtle as T
-import Prelude hiding     (FilePath, head)
+import Prelude hiding        (FilePath, head)
 import Filesystem.Path.CurrentOS as Path
-import Data.Monoid        ((<>))
+import Data.Monoid           ((<>))
 import TextShow
-import Control.Monad      (when, unless)
+import Control.Monad         (when, unless)
 
-import GetYinPitches      (extractPitchTo)
-import YouTubeDownloader  (searchYoutube, download)
--- import Utils.MediaConversion  (convertToMp4)
-import Utils.Misc         (toTxt, exec, dropDotFiles)
+import GetYinPitches         (extractPitchTo)
+import YouTubeDownloader     (searchYoutube, download)
+import Utils.MediaConversion (convertToMp4)
+import Utils.Misc            (toTxt, exec, dropDotFiles)
 
-
-convertToMp4' :: (T.FilePath, T.FilePath) -> Text
-convertToMp4' paths = "ffmpeg -loglevel error"
-  <> " -i "        <> toTxt (fst paths)
-  <> " -ar 44.1k " <> toTxt (snd paths)
 
 mkdirDestructive :: T.MonadIO io => T.FilePath -> io ()
 mkdirDestructive path = do
@@ -69,7 +64,7 @@ runPitchExtractor = do
       sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
 
       convToMp4Cmds :: [Text]
-      convToMp4Cmds = map convertToMp4' sourcePathsInOut
+      convToMp4Cmds = map convertToMp4 sourcePathsInOut
 
   outputs <- mapM exec convToMp4Cmds
 

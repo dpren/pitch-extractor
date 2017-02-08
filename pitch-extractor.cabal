@@ -15,18 +15,12 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     PitchExtractor
-                     , ExtractPitchTo
                      , GetYinPitches
                      , YouTubeDownloader
                      , CalculatePitchLocation
-                     , Utils.FreqToNote
                      , Utils.MediaConversion
                      , Utils.Misc
   build-depends:       base >= 4.7 && < 5
-                     , pitchtrack
-                     , process
-                     , filepath
-                     , directory >= 1.2.5.0
                      , wreq
                      , lens
                      , lens-aeson
@@ -35,7 +29,6 @@ library
                      , text-show
                      , bytestring
                      , split
-                     , hstats
                      , containers
                      , system-filepath
                      , turtle
