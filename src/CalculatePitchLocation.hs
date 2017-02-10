@@ -1,8 +1,8 @@
 module CalculatePitchLocation where
 
 import Data.List
-import Data.Function          (on)
-import Data.Fixed             (mod')
+import Data.Function (on)
+-- import Data.Fixed    (mod')
 
 
 groupByEq :: [Double] -> [[Double]]

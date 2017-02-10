@@ -3,8 +3,6 @@ module YouTubeDownloader where
 import Network.Wreq
 import Control.Lens
 import Data.Aeson.Lens
-import Data.Aeson
-import Data.Map as Map
 import Data.ByteString.Lazy as SL (putStrLn)
 import Data.Text as Text          (pack, unpack, Text)
 import Control.Monad              (when, unless)
@@ -13,13 +11,19 @@ import Data.Monoid                ((<>))
 import qualified Turtle as T
 import Prelude hiding             (FilePath)
 import Utils.Misc                 (toTxt, exec)
-
-type Resp = Response (Map String Value)
+import Types                      (VideoId)
 
 api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
 
-download :: T.MonadIO io => T.FilePath -> Text -> io (T.ExitCode, Text)
-download path videoId = exec $
+download :: T.FilePath -> VideoId -> IO (T.ExitCode, VideoId)
+download path videoId = do
+  print videoId
+  cmdOut <- downloadCmd path videoId
+  return (fst cmdOut, videoId)
+
+  -- where
+downloadCmd :: T.FilePath -> VideoId -> IO (T.ExitCode, Text)
+downloadCmd path videoId = exec $
   "youtube-dl -o "
   <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
   <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
@@ -31,7 +35,7 @@ download path videoId = exec $
   <> " -- " <> videoId
 
 
-searchYoutube :: Text -> Text -> IO [Text]
+searchYoutube :: Text -> Text -> IO [VideoId]
 searchYoutube query maxResults = do
   let opts = defaults & param "part"            .~ ["snippet"]
                       & param "key"             .~ [api_key]
@@ -45,9 +49,8 @@ searchYoutube query maxResults = do
   r <- getWith opts "https://www.googleapis.com/youtube/v3/search?"
 
   let videoIds = r ^.. responseBody . key "items" . values . key "id" . key "videoId" . _String
+      resultsCount = length videoIds
 
-  let resultsCount = length videoIds
-
-  when (resultsCount == 0) (error $ "\n No videos found for:  " ++ (unpack query))
+  when (resultsCount == 0) (error $ "\n No videos found for:  " ++ unpack query)
 
   return videoIds

@@ -11,13 +11,9 @@ import TextShow              (showt)
 
 import CalculatePitchLocation
 import Utils.MediaConversion (createMonoAudio, createWav, spliceFile)
-import Utils.Misc            (toTxt, exec, formatDouble)
-
+import Utils.Misc            (toTxt, exec, formatDouble, getPythonPath)
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
-
-
-pythonPath = "/usr/local/bin/python"
 
 
 _getPitches_yin :: T.FilePath -> T.FilePath -> IO (Either T.Text [[Double]])
@@ -26,25 +22,21 @@ _getPitches_yin filePath tempPath = do
       monoAudioCmd = createMonoAudio filePath monoFilePath
       yinCmd       = ["yin_pitch.py", (toTxt monoFilePath)]
 
+  pythonPath <- getPythonPath
+
   cmdOutput <- T.shellStrict monoAudioCmd T.empty
-  case eith cmdOutput of
-    Left err -> return (Left (err <> " (createMonoAudio)"))
-    Right stdout -> do
+  case cmdOutput of
+    (T.ExitFailure n, err) -> return (Left (err <> " (createMonoAudio)"))
+    (T.ExitSuccess, stdout) -> do
 
       yin_pitches <- (T.procStrict pythonPath yinCmd T.empty)
-      case eith yin_pitches of
-        Left err -> return (Left (err <> " (yin_pitch.py)"))
-        Right pitches -> do
+      case yin_pitches of
+        (T.ExitFailure n, err) -> return (Left (err <> " (yin_pitch.py)"))
+        (T.ExitSuccess, pitches) -> do
 
           let bins = groupByEq (parseOutput pitches)
           return (Right bins)
 
-
-
-eith :: (T.ExitCode, T.Text) -> Either T.Text T.Text
-eith output = case output of
-  (T.ExitFailure n, err) -> Left err
-  (T.ExitSuccess, stdout) -> Right stdout
 
 
 extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> T.FilePath -> IO ()

@@ -13,17 +13,8 @@ import Control.Monad         (when, unless)
 import GetYinPitches         (extractPitchTo)
 import YouTubeDownloader     (searchYoutube, download)
 import Utils.MediaConversion (convertToMp4)
-import Utils.Misc            (toTxt, exec, dropDotFiles)
-
-
-mkdirDestructive :: T.MonadIO io => T.FilePath -> io ()
-mkdirDestructive path = do
-  dirExists <- T.testdir path
-  when dirExists (T.rmtree path)
-  T.mkdir path
-
-wasSuccessful :: (T.ExitCode, b) -> Bool
-wasSuccessful a = (fst a) == T.ExitSuccess
+import Utils.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
+import Types                 (VideoId)
 
 
 runPitchExtractor :: IO ()
@@ -50,7 +41,9 @@ runPitchExtractor = do
   mkdirDestructive sourceDir
   videoIds <- searchYoutube searchQuery maxResults
   print videoIds
-  mapM_ (download sourceDir) videoIds
+  dldVids <- mapM (download sourceDir) videoIds
+  -- print $ successData dldVids
+
 
   -------- Convert source to 44.1k mp4 --------
   T.echo "\ncreating 44.1k mp4s..."
@@ -63,17 +56,11 @@ runPitchExtractor = do
       sourcePathsMp4   = map (\x -> sourceMp4Dir </> x `replaceExtension` "mp4") sourceDirFiles
       sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
 
-      convToMp4Cmds :: [Text]
-      convToMp4Cmds = map convertToMp4 sourcePathsInOut
 
-  outputs <- mapM exec convToMp4Cmds
+  mp4ConvOutputs <- mapM convertToMp4 sourcePathsInOut
 
-  let
-      outputsWithPath :: [((T.ExitCode, Text), T.FilePath)]
-      outputsWithPath = zip outputs sourcePathsMp4
-
-      successfulMp4Paths :: [T.FilePath]
-      successfulMp4Paths = map snd $ filter (wasSuccessful . fst) outputsWithPath
+  let successfulMp4Paths :: [T.FilePath]
+      successfulMp4Paths = successData mp4ConvOutputs
 
 
   -------- Pitch extraction from source-mp4 --------

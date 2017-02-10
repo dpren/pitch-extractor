@@ -3,11 +3,17 @@ module Utils.MediaConversion where
 import qualified Turtle as T
 import Utils.Misc (toTxt, exec)
 import Data.Monoid ((<>))
+import Data.Text
 
-convertToMp4 :: (T.FilePath, T.FilePath) -> T.Text
-convertToMp4 paths = "ffmpeg -loglevel error"
-  <> " -i "        <> toTxt (fst paths)
-  <> " -ar 44.1k " <> toTxt (snd paths)
+convertToMp4 :: (T.FilePath, T.FilePath) -> IO (T.ExitCode, T.FilePath)
+convertToMp4 (inPath, outPath) = do
+  cmdOut <- mp4Cmd
+  return (fst cmdOut, outPath)
+  where
+    mp4Cmd = exec $
+      "ffmpeg -loglevel error"
+      <> " -i "        <> toTxt inPath
+      <> " -ar 44.1k " <> toTxt outPath
 
 createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
 createMonoAudio filePath outputPath =
