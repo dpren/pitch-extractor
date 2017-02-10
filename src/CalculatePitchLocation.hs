@@ -2,8 +2,6 @@ module CalculatePitchLocation where
 
 import Data.List
 import Data.Function (on)
--- import Data.Fixed    (mod')
-
 
 groupByEq :: [Double] -> [[Double]]
 groupByEq = groupBy (==)
@@ -17,7 +15,6 @@ firstSegment bins = concat <$> flip take bins <$> (longestBinIndex . dropMIDIOut
 
 longestPitchSeg :: [[Double]] -> [Double]
 longestPitchSeg = longestBin . dropMIDIOutliers
-
 
 longestBinIndex :: [[Double]] -> Maybe Int
 longestBinIndex bins = elemIndex (longestBin bins) bins
