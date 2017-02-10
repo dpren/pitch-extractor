@@ -18,6 +18,7 @@ Prerequisites
 Usage
 ----
 
+    stack setup
     stack build
     stack exec pitch-extractor-exe "philliesboy681 on the piano" "8"
 
