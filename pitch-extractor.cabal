@@ -38,6 +38,7 @@ library
 
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
+                     , GeneralizedNewtypeDeriving
 
 executable pitch-extractor-exe
   hs-source-dirs:      app

@@ -15,7 +15,7 @@ import GetYinPitches         (extractPitchTo)
 import YouTubeDownloader     (searchYoutube, download)
 import Utils.MediaConversion (convertToMp4)
 import Utils.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
-import Types                 (VideoId)
+import Types
 
 
 forkJoin :: IO a -> IO (MVar a)
@@ -59,10 +59,10 @@ runPitchExtractor = do
       -------- Download --------
       produce :: Chan (Maybe VideoId) -> VideoId -> IO ()
       produce ch videoId = do
-        T.echo $ "  downloading: " <> videoId
+        T.echo $ "  downloading: " <> (fromId videoId)
         dldVid <- download sourceDir videoId
         case dldVid of
-          (T.ExitFailure _, err)  -> T.echo $ "Download error: " <> videoId
+          (T.ExitFailure _, err)  -> T.echo $ "Download error: " <> (fromId videoId)
           (T.ExitSuccess, stdout) -> writeChan ch (Just videoId)
 
       -------- Process --------
@@ -71,7 +71,7 @@ runPitchExtractor = do
         maybeStr <- readChan ch
         case maybeStr of
           Just videoId -> do
-            T.echo $ "  processing: " <> videoId
+            T.echo $ "  processing: " <> (fromId videoId)
             lessHugeThing videoId
             consume ch
           Nothing -> return "Done."
@@ -95,9 +95,9 @@ hugeThing :: T.FilePath ->
 hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir videoId = do
 
   -------- Convert source to 44.1k mp4 --------
-  srcPath <- T.fold (T.find (T.has $ T.text videoId) sourceDir) F.head
+  srcPath <- T.fold (T.find (T.has $ T.text (fromId videoId)) sourceDir) F.head
   case srcPath of
-    Nothing -> T.echo $ "Video file not found: " <> videoId
+    Nothing -> T.echo $ "Video file not found: " <> (fromId videoId)
     Just path -> do
       let sourceDirFiles   = [T.filename path]
           sourcePathsOrig  = map (sourceDir </>) sourceDirFiles
