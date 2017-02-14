@@ -83,7 +83,14 @@ runPitchExtractor = do
                   writeChan chan Nothing
   c <- forkJoin $ consume chan
   takeMVar c >>= T.echo
+
+  -------- Cleanup --------
+  T.rmtree tempDir
+  -- T.rmtree sourceDir
+  -- T.rmtree sourceMp4Dir
+
   T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
+
 
 -- todo: make this a record
 hugeThing :: T.FilePath ->
@@ -111,9 +118,3 @@ hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir videoId = do
 
       -------- Pitch extraction from source-mp4 --------
       mapM_ (extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
-
-
-  -- -------- Cleanup --------
-  -- T.rmtree tempDir
-  -- T.rmtree sourceDir
-  -- T.rmtree sourceMp4Dir
