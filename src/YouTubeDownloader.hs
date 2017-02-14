@@ -17,22 +17,21 @@ api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
 
 download :: T.FilePath -> VideoId -> IO (T.ExitCode, VideoId)
 download path videoId = do
-  print videoId
   cmdOut <- downloadCmd path videoId
   return (fst cmdOut, videoId)
-
-  -- where
-downloadCmd :: T.FilePath -> VideoId -> IO (T.ExitCode, Text)
-downloadCmd path videoId = exec $
-  "youtube-dl -o "
-  <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
-  <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
-  <> " --min-sleep-interval 1 "
-  <> " --max-sleep-interval 200 "
-  <> " --no-warnings "
-  <> " --abort-on-error "
-  -- <> " --ignore-errors "
-  <> " -- " <> videoId
+  
+  where
+    downloadCmd :: T.FilePath -> VideoId -> IO (T.ExitCode, Text)
+    downloadCmd path videoId = exec $
+      "youtube-dl -o "
+      <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
+      <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
+      <> " --min-sleep-interval 1 "
+      <> " --max-sleep-interval 200 "
+      <> " --no-warnings "
+      <> " --abort-on-error "
+      -- <> " --ignore-errors "
+      <> " -- " <> videoId
 
 
 searchYoutube :: Text -> Text -> IO [VideoId]
