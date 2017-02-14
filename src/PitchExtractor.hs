@@ -9,12 +9,20 @@ import Filesystem.Path.CurrentOS as Path
 import Data.Monoid           ((<>))
 import TextShow
 import Control.Monad         (when, unless)
+import Control.Concurrent
 
 import GetYinPitches         (extractPitchTo)
 import YouTubeDownloader     (searchYoutube, download)
 import Utils.MediaConversion (convertToMp4)
 import Utils.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
 import Types                 (VideoId)
+
+
+forkJoin :: IO a -> IO (MVar a)
+forkJoin task = do
+  mv <- newEmptyMVar
+  forkIO (task >>= putMVar mv)
+  return mv
 
 
 runPitchExtractor :: IO ()
@@ -35,47 +43,77 @@ runPitchExtractor = do
   baseAlreadyExists <- T.testdir outputBase
   unless baseAlreadyExists (T.mkdir outputBase)
 
-
-  -------- Download vids --------
-  T.echo "\ndownloading vids..."
   mkdirDestructive sourceDir
-  videoIds <- searchYoutube searchQuery maxResults
-  print videoIds
-  dldVids <- mapM (download sourceDir) videoIds
-  -- print $ successData dldVids
-
-
-  -------- Convert source to 44.1k mp4 --------
-  T.echo "\ncreating 44.1k mp4s..."
   mkdirDestructive sourceMp4Dir
-
-  sourceDirAllFiles <- map T.filename <$> (T.fold (T.ls sourceDir) F.list)
-
-  let sourceDirFiles   = dropDotFiles sourceDirAllFiles
-      sourcePathsOrig  = map (sourceDir </>) sourceDirFiles
-      sourcePathsMp4   = map (\x -> sourceMp4Dir </> x `replaceExtension` "mp4") sourceDirFiles
-      sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
-
-
-  mp4ConvOutputs <- mapM convertToMp4 sourcePathsInOut
-
-  let successfulMp4Paths :: [T.FilePath]
-      successfulMp4Paths = successData mp4ConvOutputs
-
-
-  -------- Pitch extraction from source-mp4 --------
-  T.echo "\npitch extraction..."
   mkdirDestructive tempDir
   mkdirDestructive outputDir
   T.mkdir          outputWavDir
 
+  -------- Get video ids --------
+  T.echo "\nlooking for vids..."
+  videoIds <- searchYoutube searchQuery maxResults
 
-  mapM_ (extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
+  let lessHugeThing :: VideoId -> IO ()
+      lessHugeThing = hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir
+
+      -------- Download --------
+      produce :: Chan (Maybe VideoId) -> VideoId -> IO ()
+      produce ch videoId = do
+        T.echo $ "  downloading: " <> videoId
+        dldVid <- download sourceDir videoId
+        case dldVid of
+          (T.ExitFailure _, err)  -> T.echo $ "Download error: " <> videoId
+          (T.ExitSuccess, stdout) -> writeChan ch (Just videoId)
+
+      -------- Process --------
+      consume :: Chan (Maybe VideoId) -> IO Text
+      consume ch = do
+        maybeStr <- readChan ch
+        case maybeStr of
+          Just videoId -> do
+            T.echo $ "  processing: " <> videoId
+            lessHugeThing videoId
+            consume ch
+          Nothing -> return "Done."
+
+  print videoIds
+
+  chan <- newChan
+  p <- forkJoin $ mapM_ (produce chan) videoIds >>
+                  writeChan chan Nothing
+  c <- forkJoin $ consume chan
+  takeMVar c >>= T.echo
+  T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
+
+-- todo: make this a record
+hugeThing :: T.FilePath ->
+             T.FilePath ->
+             T.FilePath ->
+             T.FilePath ->
+             T.FilePath ->
+             VideoId -> IO ()
+hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir videoId = do
+
+  -------- Convert source to 44.1k mp4 --------
+  srcPath <- T.fold (T.find (T.has $ T.text videoId) sourceDir) F.head
+  case srcPath of
+    Nothing -> T.echo $ "Video file not found: " <> videoId
+    Just path -> do
+      let sourceDirFiles   = [T.filename path]
+          sourcePathsOrig  = map (sourceDir </>) sourceDirFiles
+          sourcePathsMp4   = map (\x -> sourceMp4Dir </> x `replaceExtension` "mp4") sourceDirFiles
+          sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
+
+      mp4ConversionOutputs <- mapM convertToMp4 sourcePathsInOut
+
+      let successfulMp4Paths :: [T.FilePath]
+          successfulMp4Paths = successData mp4ConversionOutputs
+
+      -------- Pitch extraction from source-mp4 --------
+      mapM_ (extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
 
 
   -- -------- Cleanup --------
   -- T.rmtree tempDir
   -- T.rmtree sourceDir
   -- T.rmtree sourceMp4Dir
-
-  T.echo $ "\n\nDone, successful videos extracted to: " <> (toTxt outputDir)
