@@ -20,7 +20,7 @@ Usage
 
     stack setup
     stack build
-    stack exec pitch-extractor-exe "flute exercise" "20"
+    stack exec pitch-extractor-exe "flute exercise" "10"
 
 
 args:
