@@ -8,4 +8,4 @@
 vid-output/
 vid-source/
 vid-source-mp4/
-temp/
+.temp/
