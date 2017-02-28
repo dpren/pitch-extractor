@@ -11,7 +11,7 @@ import TextShow              (showt)
 import Control.Monad         (foldM, foldM_)
 
 import CalculatePitchLocation
-import Utils.MediaConversion (createMonoAudio, createWav, spliceFile)
+import Utils.MediaConversion (createMonoAudio, spliceFile)
 import Utils.Misc            (toTxt, exec, formatDouble, getPythonPath, count)
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
@@ -40,8 +40,8 @@ getPitches_yin filePath tempPath = do
 
 
 
-extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> T.FilePath -> IO ()
-extractPitchTo outputDir outputWavDir tempDir filePath = do
+extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> IO ()
+extractPitchTo outputDir tempDir filePath = do
   bins <- getPitches_yin filePath tempPath
   case bins of
     Left yinErr -> errMsg yinErr
@@ -53,15 +53,12 @@ extractPitchTo outputDir outputWavDir tempDir filePath = do
               Nothing -> errMsg "pitch start time not found" >> return prevNotes
               Just startTime -> do
                 let
-                  duration     = computeTime segment
-                  midiNote     = (truncate $ head segment) :: Int
-
+                  duration      = computeTime segment
+                  midiNote      = (truncate $ head segment) :: Int
                   dupeNoteIndex = count midiNote prevNotes
                   midiNoteName  = (showt midiNote) <> "__" <> (showt dupeNoteIndex) <> "__"
                   outputName    = midiNoteName <> fileName
-
                   outputPath    = outputDir </> (Path.fromText outputName)
-                  wavFilePath   = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
                   _startTime    = showt startTime
                   _duration     = showt duration
                   _segment      = showt segment
@@ -70,11 +67,6 @@ extractPitchTo outputDir outputWavDir tempDir filePath = do
                 case spliceCmd of
                   (T.ExitFailure n, err)  -> errMsg err >> return prevNotes
                   (T.ExitSuccess, stdout) -> do
-
-                    -- crtWavCmd <- T.shellStrict (createWav outputPath wavFilePath) T.empty
-                    -- case crtWavCmd of
-                    --   (T.ExitFailure n, err)  -> errMsg err
-                    --   (T.ExitSuccess, stdout) -> do
 
                     T.echo $ "✔ " <> outputName
                     T.echo $ "     time: " <> formatDouble 2 startTime
@@ -85,7 +77,6 @@ extractPitchTo outputDir outputWavDir tempDir filePath = do
         )
         []
         (qualifiedPitchSegments bins)
-
 
 
   where

@@ -18,13 +18,6 @@ import Utils.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, succe
 import Types
 
 
-forkJoin :: IO a -> IO (MVar a)
-forkJoin task = do
-  mv <- newEmptyMVar
-  forkIO (task >>= putMVar mv)
-  return mv
-
-
 runPitchExtractor :: IO ()
 runPitchExtractor = do
   args <- T.arguments
@@ -34,7 +27,6 @@ runPitchExtractor = do
       maxResults    = args !! 1
       outputBase    = currentDir </> "vid-output"
       outputDir     = outputBase </> Path.fromText (replace " " "_" searchQuery)
-      outputWavDir  = outputDir  </> "WAV"
       sourceDir     = currentDir </> "vid-source"
       sourceMp4Dir  = currentDir </> "vid-source-mp4"
       tempDir       = currentDir </> ".temp"
@@ -47,14 +39,13 @@ runPitchExtractor = do
   mkdirDestructive sourceMp4Dir
   mkdirDestructive tempDir
   mkdirDestructive outputDir
-  -- T.mkdir          outputWavDir
 
   -------- Get video ids --------
   T.echo "\nlooking for vids..."
   videoIds <- searchYoutube searchQuery maxResults
 
   let lessHugeThing :: VideoId -> IO ()
-      lessHugeThing = hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir
+      lessHugeThing = hugeThing outputDir sourceDir sourceMp4Dir tempDir
 
       -------- Download --------
       produce :: Chan (Maybe VideoId) -> VideoId -> IO ()
@@ -97,10 +88,8 @@ hugeThing :: T.FilePath ->
              T.FilePath ->
              T.FilePath ->
              T.FilePath ->
-             T.FilePath ->
              VideoId -> IO ()
-hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir videoId = do
-
+hugeThing outputDir sourceDir sourceMp4Dir tempDir videoId = do
   -------- Convert source to 44.1k mp4 --------
   srcPath <- T.fold (T.find (T.has $ T.text (fromId videoId)) sourceDir) F.head
   case srcPath of
@@ -113,8 +102,15 @@ hugeThing outputDir outputWavDir sourceDir sourceMp4Dir tempDir videoId = do
 
       mp4ConversionOutputs <- mapM convertToMp4 sourcePathsInOut
 
-      let successfulMp4Paths :: [T.FilePath]
-          successfulMp4Paths = successData mp4ConversionOutputs
+      let successfulMp4Paths = successData mp4ConversionOutputs :: [T.FilePath]
 
       -------- Pitch extraction from source-mp4 --------
-      mapM_ (extractPitchTo outputDir outputWavDir tempDir) successfulMp4Paths
+      mapM_ (extractPitchTo outputDir tempDir) successfulMp4Paths
+
+
+
+forkJoin :: IO a -> IO (MVar a)
+forkJoin task = do
+  mv <- newEmptyMVar
+  forkIO (task >>= putMVar mv)
+  return mv

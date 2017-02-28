@@ -21,12 +21,6 @@ createMonoAudio filePath outputPath =
     <> " -i " <> (toTxt filePath)
     <> " -ar 44.1k -ac 1 " <> (toTxt outputPath)
 
-createWav :: T.FilePath -> T.FilePath -> T.Text
-createWav filePath outputPath =
-  "ffmpeg -loglevel error "
-  <> " -i " <> (toTxt filePath)
-  <> " "    <> (toTxt outputPath)
-
 spliceFile :: T.FilePath -> T.Text -> T.Text -> T.FilePath -> T.Text
 spliceFile filePath startTime duration outputPath =
   "ffmpeg -loglevel error "
