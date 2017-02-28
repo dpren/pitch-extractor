@@ -8,7 +8,7 @@ import Prelude hiding (FilePath)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid           ((<>))
 import TextShow              (showt)
-import Control.Monad         (foldM, foldM_)
+import Control.Monad         (foldM, foldM_, when)
 
 import CalculatePitchLocation
 import Utils.MediaConversion (createMonoAudio, spliceFile)
@@ -46,6 +46,8 @@ extractPitchTo outputDir tempDir filePath = do
   case bins of
     Left yinErr -> errMsg yinErr
     Right bins -> do
+      let pitchSegments = (qualifiedPitchSegments bins)
+      when (pitchSegments == []) (T.echo ("× " <> fileName <> ": no pitches found"))
       foldM_
         (
           \prevNotes segment -> do
@@ -76,7 +78,7 @@ extractPitchTo outputDir tempDir filePath = do
                     return (midiNote : prevNotes)
         )
         []
-        (qualifiedPitchSegments bins)
+        pitchSegments
 
 
   where
