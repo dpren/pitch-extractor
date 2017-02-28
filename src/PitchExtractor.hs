@@ -47,7 +47,7 @@ runPitchExtractor = do
   mkdirDestructive sourceMp4Dir
   mkdirDestructive tempDir
   mkdirDestructive outputDir
-  T.mkdir          outputWavDir
+  -- T.mkdir          outputWavDir
 
   -------- Get video ids --------
   T.echo "\nlooking for vids..."
@@ -76,7 +76,7 @@ runPitchExtractor = do
             consume ch
           Nothing -> return "Done."
 
-  print videoIds
+  mapM_ print videoIds
 
   chan <- newChan
   p <- forkJoin $ mapM_ (produce chan) videoIds >>

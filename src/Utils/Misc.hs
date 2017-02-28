@@ -47,3 +47,6 @@ getPythonPath = shelly $ do
     case maybP of
         Nothing -> error "Error: python not found in path."
         Just p -> shelly $ toTextWarn p
+
+count :: Eq a => a -> [a] -> Int
+count x = length . filter (x ==)

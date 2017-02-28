@@ -8,11 +8,11 @@ them to a directory, indexed by note.
 Prerequisites
 ----
 
-	brew install ffmpeg
-	brew install youtube-dl
     brew install haskell-stack
+	brew install youtube-dl
+    brew install ffmpeg
 
-    python -m pip install aubio
+    pip install git+https://github.com/aubio/aubio.git
 
 
 Usage
@@ -20,7 +20,7 @@ Usage
 
     stack setup
     stack build
-    stack exec pitch-extractor-exe "philliesboy681 on the piano" "8"
+    stack exec pitch-extractor-exe "flute exercise" "20"
 
 
 args:

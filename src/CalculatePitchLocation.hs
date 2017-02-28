@@ -3,24 +3,22 @@ module CalculatePitchLocation where
 import Data.List
 import Data.Function (on)
 
-groupByEq :: [Double] -> [[Double]]
-groupByEq = groupBy (==)
+minDuration = 0.3
 
-pitchStartTime :: [[Double]] -> Maybe Double
-pitchStartTime bins = computeTime <$> (firstSegment bins)
+pitchStartTime :: [Double] -> [[Double]] -> Maybe Double
+pitchStartTime segment bins = computeTime <$> (segmentPrefix segment bins)
 
--- | The list preceding the pitch segment
-firstSegment :: [[Double]] -> Maybe [Double]
-firstSegment bins = concat <$> flip take bins <$> (longestBinIndex . dropMIDIOutliers) bins
+-- | The list preceding the specified pitch segment
+segmentPrefix :: [Double] -> [[Double]] -> Maybe [Double]
+segmentPrefix segment bins = concat <$> flip take bins <$> segIndex
+    where segIndex = elemIndex segment bins
 
-longestPitchSeg :: [[Double]] -> [Double]
-longestPitchSeg = longestBin . dropMIDIOutliers
+qualifiedPitchSegments :: [[Double]] -> [[Double]]
+qualifiedPitchSegments = filterQualified . dropMIDIOutliers
+    where filterQualified = filter isAboveMinDuration
 
-longestBinIndex :: [[Double]] -> Maybe Int
-longestBinIndex bins = elemIndex (longestBin bins) bins
-
-longestBin :: [[Double]] -> [Double]
-longestBin = (maximumBy (compare `on` length))
+isAboveMinDuration :: [Double] -> Bool
+isAboveMinDuration pitchSeg = (computeTime pitchSeg) > minDuration
 
 -- | Filters a reasonable note range
 dropMIDIOutliers :: [[Double]] -> [[Double]]

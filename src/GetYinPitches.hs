@@ -8,16 +8,17 @@ import Prelude hiding (FilePath)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid           ((<>))
 import TextShow              (showt)
+import Control.Monad         (foldM, foldM_)
 
 import CalculatePitchLocation
 import Utils.MediaConversion (createMonoAudio, createWav, spliceFile)
-import Utils.Misc            (toTxt, exec, formatDouble, getPythonPath)
+import Utils.Misc            (toTxt, exec, formatDouble, getPythonPath, count)
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 
 
-_getPitches_yin :: T.FilePath -> T.FilePath -> IO (Either T.Text [[Double]])
-_getPitches_yin filePath tempPath = do
+getPitches_yin :: T.FilePath -> T.FilePath -> IO (Either T.Text [[Double]])
+getPitches_yin filePath tempPath = do
   let monoFilePath = tempPath `replaceExtension` ".wav"
       monoAudioCmd = createMonoAudio filePath monoFilePath
       yinCmd       = ["yin_pitch.py", (toTxt monoFilePath)]
@@ -34,52 +35,56 @@ _getPitches_yin filePath tempPath = do
         (T.ExitFailure n, err) -> return (Left (err <> " (yin_pitch.py)"))
         (T.ExitSuccess, pitches) -> do
 
-          let bins = groupByEq (parseOutput pitches)
+          let bins = groupBy (==) (parseOutput pitches)
           return (Right bins)
 
 
 
 extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> T.FilePath -> IO ()
 extractPitchTo outputDir outputWavDir tempDir filePath = do
-
-  bins <- _getPitches_yin filePath tempPath
+  bins <- getPitches_yin filePath tempPath
   case bins of
     Left yinErr -> errMsg yinErr
     Right bins -> do
-        let segment     = longestPitchSeg bins
-            startTime   = pitchStartTime bins
-            duration    = computeTime segment
-            midiNote    = showt ((truncate $ head segment) :: Int)
-            outputName  = midiNote <> "__" <> fileName
-            outputPath  = outputDir </> (Path.fromText outputName)
-            wavFilePath = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
+      foldM_
+        (
+          \prevNotes segment -> do
+            case (pitchStartTime segment bins) of
+              Nothing -> errMsg "pitch start time not found" >> return prevNotes
+              Just startTime -> do
+                let
+                  duration     = computeTime segment
+                  midiNote     = (truncate $ head segment) :: Int
 
-        case startTime of
-          Nothing   -> errMsg "longestBin not found"
-          Just time ->
-            case (duration > 0.3) of
-              False -> do
-                T.echo $ "× " <> fileName
-                T.echo   " skipping: duration too short"
-              True  -> do
-                let _time     = showt time
-                    _duration = showt duration
-                    _segment  = showt segment
+                  dupeNoteIndex = count midiNote prevNotes
+                  midiNoteName  = (showt midiNote) <> "__" <> (showt dupeNoteIndex) <> "__"
+                  outputName    = midiNoteName <> fileName
 
-                spliceCmd <- T.shellStrict (spliceFile filePath _time _duration outputPath) T.empty
+                  outputPath    = outputDir </> (Path.fromText outputName)
+                  wavFilePath   = outputWavDir </> (Path.fromText outputName) `replaceExtension` ".wav"
+                  _startTime    = showt startTime
+                  _duration     = showt duration
+                  _segment      = showt segment
+
+                spliceCmd <- T.shellStrict (spliceFile filePath _startTime _duration outputPath) T.empty
                 case spliceCmd of
-                  (T.ExitFailure n, err)  -> errMsg err
+                  (T.ExitFailure n, err)  -> errMsg err >> return prevNotes
                   (T.ExitSuccess, stdout) -> do
 
-                    crtWavCmd <- T.shellStrict (createWav outputPath wavFilePath) T.empty
-                    case crtWavCmd of
-                      (T.ExitFailure n, err)  -> errMsg err
-                      (T.ExitSuccess, stdout) -> do
+                    -- crtWavCmd <- T.shellStrict (createWav outputPath wavFilePath) T.empty
+                    -- case crtWavCmd of
+                    --   (T.ExitFailure n, err)  -> errMsg err
+                    --   (T.ExitSuccess, stdout) -> do
 
-                        T.echo $ "✔ " <> outputName
-                        T.echo $ "     time: " <> formatDouble 2 time
-                        T.echo $ " duration: " <> formatDouble 2 duration
-                        T.echo $ "  segment: " <> _segment
+                    T.echo $ "✔ " <> outputName
+                    T.echo $ "     time: " <> formatDouble 2 startTime
+                    T.echo $ " duration: " <> formatDouble 2 duration
+                    T.echo $ "  segment: " <> _segment
+
+                    return (midiNote : prevNotes)
+        )
+        []
+        (qualifiedPitchSegments bins)
 
 
 
