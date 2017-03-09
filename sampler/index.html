@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      * {
+        font-family: sans-serif;;
+      }
+      video {
+        width: 300px;
+        max-height: 168px;
+      }
+      #spinner {
+        margin: 10px;
+        height: 20px;
+        width: 20px;
+        animation: rotation .5s infinite linear;
+        border: 3px solid rgba(0, 174, 239, .15);
+        border-top: 3px solid rgba(0, 174, 239, .8);
+        border-radius: 100%;
+      }
+      @keyframes rotation {
+        from {transform: rotate(0deg);}
+        to {transform: rotate(359deg);}
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.23.0/ramda.min.js"></script>
+  </head>
+  <body>
+    <div>
+      vid folder –> <input type="file" id="dropzone" webkitdirectory directory multiple/>
+    </div>
+    <div id="spinner" style="display: none;"></div>
+    <div id="container"></div>
+    <script src="main.js"></script>
+  </body>
+</html>
