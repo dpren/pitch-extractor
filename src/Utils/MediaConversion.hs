@@ -17,9 +17,9 @@ convertToMp4 (inPath, outPath) = do
 
 createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
 createMonoAudio filePath outputPath =
-    "ffmpeg -loglevel error "
-    <> " -i " <> (toTxt filePath)
-    <> " -ar 44.1k -ac 1 " <> (toTxt outputPath)
+  "ffmpeg -loglevel error "
+  <> " -i " <> (toTxt filePath)
+  <> " -ar 44.1k -ac 1 " <> (toTxt outputPath)
 
 spliceFile :: T.FilePath -> T.Text -> T.Text -> T.FilePath -> T.Text
 spliceFile filePath startTime duration outputPath =
@@ -28,3 +28,12 @@ spliceFile filePath startTime duration outputPath =
   <> " -i "  <> (toTxt filePath)
   <> " -t "  <> duration
   <> " "     <> (toTxt outputPath)
+
+normalizeVids :: T.FilePath -> IO (T.ExitCode, Text)
+normalizeVids dir = exec $
+  "ffmpeg-normalize "
+  <> " -o "    -- output to "normalize/"
+  <> " -u "    -- merge with video
+  <> " -f "    -- overwrite
+  <> " -l -5 " -- dB peak volume
+  <> (toTxt dir) <> "/*.mp4 "

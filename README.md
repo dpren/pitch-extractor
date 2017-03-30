@@ -13,6 +13,7 @@ Prerequisites
     brew install ffmpeg
 
     pip install git+https://github.com/aubio/aubio.git
+    pip install ffmpeg-normalize
 
 
 Usage

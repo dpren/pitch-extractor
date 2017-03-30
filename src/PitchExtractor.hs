@@ -13,7 +13,7 @@ import Control.Concurrent
 
 import GetYinPitches         (extractPitchTo)
 import YouTubeDownloader     (searchYoutube, download)
-import Utils.MediaConversion (convertToMp4)
+import Utils.MediaConversion (convertToMp4, normalizeVids)
 import Utils.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
 import Types
 
@@ -27,7 +27,7 @@ runPitchExtractor = do
       maxResults    = args !! 1
       outputBase    = currentDir </> "vid-output"
       outputDir     = outputBase </> Path.fromText (replace " " "_" searchQuery)
-      sourceDir     = currentDir </> "vid-source"
+      sourceDir     = currentDir </> ".vid-source"
       sourceMp4Dir  = currentDir </> "vid-source-mp4"
       tempDir       = currentDir </> ".temp"
 
@@ -39,6 +39,13 @@ runPitchExtractor = do
   mkdirDestructive sourceMp4Dir
   mkdirDestructive tempDir
   mkdirDestructive outputDir
+
+
+  T.view $ T.inshell "which youtube-dl" T.empty
+  T.view $ T.inshell "which ffmpeg" T.empty
+  T.view $ T.inshell "which python" T.empty
+  T.view $ T.inshell "which ffmpeg-normalize" T.empty
+
 
   -------- Get video ids --------
   T.echo "\nlooking for vids..."
@@ -74,6 +81,9 @@ runPitchExtractor = do
                   writeChan chan Nothing
   c <- forkJoin $ consume chan
   takeMVar c >>= T.echo
+
+  -------- Normalize --------
+  normalizeVids outputDir
 
   -------- Cleanup --------
   T.rmtree tempDir
