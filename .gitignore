@@ -1,11 +1,11 @@
-*.raw
 *.mp4
-*.wav
 *.mkv
+*.raw
+*.wav
 *.webm
 .DS_Store
 .stack-work/
-vid-output/
-vid-source/
-vid-source-mp4/
 .temp/
+.vid-source/
+vid-output/
+vid-source-mp4/
