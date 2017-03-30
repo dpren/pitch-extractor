@@ -5,6 +5,7 @@ const spinner = document.querySelector('#spinner');
 
 let videoEls = [];
 let vidsLoaded = 0;
+let totalVidCount = 0;
 
 const rejectDotFiles = reject(pathEq(['name', '0'], '.'));
 const dropExtension = f => f.split('.')[0];
@@ -15,12 +16,14 @@ dropzone.onchange = ev => {
 
   const files = rejectDotFiles(Array.from(ev.target.files));
 
+  totalVidCount = files.length;
+
   videoEls = files.map(file =>
-    createVideoEl(file.name, URL.createObjectURL(file), files.length)
+    createVideoEl(file.name, URL.createObjectURL(file))
   );
 };
 
-const createVideoEl = (filename, src, totalVidCount) => {
+const createVideoEl = (filename, src) => {
   const selectorId = 'v-' + dropExtension(filename);
   container.insertAdjacentHTML('beforeend',
     `<video
@@ -31,17 +34,18 @@ const createVideoEl = (filename, src, totalVidCount) => {
   );
   let vidEl = document.getElementById(selectorId);
   vidEl.midiNote = midiFromFilename(filename);
-  vidEl.addEventListener('canplay', onCanPlay(totalVidCount));
+  vidEl.addEventListener('canplay', onCanPlay);
   return vidEl;
 };
 
-const onCanPlay = totalVidCount => ev => {
+const onCanPlay = ev => {
   vidsLoaded++;
   ev.target.removeEventListener('canplay', onCanPlay);
   if (vidsLoaded === totalVidCount) {
     onAllVideosLoaded(videoEls);
   }
 };
+
 
 const groupVidsByMidi = groupWith(eqProps('midiNote'));
 
@@ -50,6 +54,7 @@ const indexGroupsByMidi = indexBy(grp => grp[0].midiNote);
 const initRRIndex = map(x => { x.rrIndex = 0; return x; });
 
 const videoElsToIndexedGroups = compose(initRRIndex, indexGroupsByMidi, groupVidsByMidi);
+
 
 const onAllVideosLoaded = (videoEls) => {
   spinner.style.display = 'none';
