@@ -31,6 +31,7 @@ download path videoId = do
       <> " --no-warnings "
       <> " --abort-on-error "
       -- <> " --ignore-errors "
+      <> " --no-check-certificate"
       <> " -- " <> (fromId videoId)
 
 
