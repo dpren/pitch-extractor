@@ -1,10 +1,11 @@
 module Utils.MediaConversion where
 
 import qualified Turtle as T
-import Utils.Misc (toTxt, exec)
-import Data.Monoid ((<>))
+import qualified Control.Foldl as Fold
 import Filesystem.Path.CurrentOS as Path
+import Data.Monoid ((<>))
 import Data.Text
+import Utils.Misc (toTxt, exec)
 
 convertToMp4 :: (T.FilePath, T.FilePath) -> IO (T.ExitCode, T.FilePath)
 convertToMp4 (inPath, outPath) = do
@@ -31,21 +32,39 @@ spliceFile filePath startTime duration outputPath =
   <> " "     <> (toTxt outputPath)
 
 normalizeVids :: T.FilePath -> IO ()
-normalizeVids dir = do
-  normalizeCmdOut <- execNormalize dir
+normalizeVids outDir = do
+  T.echo "normalizing..."
+  normalizeCmdOut <- (exec . normalizeCmd) outDir
   case normalizeCmdOut of
     (T.ExitFailure n, err) -> error $ unpack ("ffmpeg-normalize failure" <> err)
     (T.ExitSuccess, _) -> do
-      T.rm (dir </> "*.mp4")
-      T.mv (dir </> "normalized/*.mp4 ") dir
-      T.rmdir (dir </> "normalized")
+      T.echo "ffmpeg-normalize success"
+      let normalizedDir = outDir </> "normalized"
+      originalFiles   <- lsMp4s outDir
+      normalizedFiles <- lsMp4s normalizedDir
 
-  where
-    execNormalize :: T.FilePath -> IO (T.ExitCode, Text)
-    execNormalize dir = exec $
-      "ffmpeg-normalize "
-      <> " -o "    -- output to "normalize/"
-      <> " -u "    -- merge with video
-      <> " -f "    -- overwrite
-      <> " -l -5 " -- dB peak volume
-      <> (toTxt dir) <> "/*.mp4 "
+      mapM_ T.rm originalFiles
+      mapM_
+        (\normFile -> T.mv normFile (outDir </> T.filename normFile))
+        normalizedFiles
+      T.rmdir normalizedDir
+
+normalizeCmd :: T.FilePath -> Text
+normalizeCmd outDir =
+  "ffmpeg-normalize"
+  <> " -o "    -- output to "normalize/"
+  <> " -u "    -- merge with video
+  <> " -f "    -- overwrite
+  <> " -l -5 " -- dB peak volume
+  <> (toTxt (outDir </> "*.mp4"))
+
+lsMp4s :: T.MonadIO io => T.FilePath -> io [T.FilePath]
+lsMp4s = lsByPattern (T.ends ".mp4")
+
+lsByPattern :: T.MonadIO io => T.Pattern a -> T.FilePath -> io [T.FilePath]
+lsByPattern pattern dir = T.fold (
+    T.ls dir
+    T.& fmap (T.format T.fp)
+    T.& T.grep pattern
+    T.& fmap T.fromText
+  ) Fold.list

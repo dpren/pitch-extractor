@@ -87,7 +87,7 @@ runPitchExtractor = do
 
   -------- Cleanup --------
   T.rmtree tempDir
-  -- T.rmtree sourceDir
+  T.rmtree sourceDir
   -- T.rmtree sourceMp4Dir
 
   T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
