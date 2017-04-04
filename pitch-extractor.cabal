@@ -28,6 +28,7 @@ library
                      , aeson
                      , text
                      , text-show
+                     , attoparsec
                      , bytestring
                      , split
                      , containers
@@ -35,7 +36,13 @@ library
                      , turtle
                      , shelly
                      , foldl
-
+  pkgconfig-depends:   libavutil
+                     , libavformat
+                     , libavcodec
+                    --  , youtube-dl
+                    --  , python
+                    --  , libswscale
+                    --  , libavdevice
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
                      , GeneralizedNewtypeDeriving

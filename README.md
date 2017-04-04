@@ -26,8 +26,8 @@ Usage
 
 args:
 - search query
-- max videos to download (< 50)
+- max videos to download
 
-(downloading can take a while)
+(downloading takes a long time)
 
 outputs to -> `/vid-ouput/<search query>`

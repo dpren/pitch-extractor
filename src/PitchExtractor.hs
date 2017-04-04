@@ -7,7 +7,6 @@ import qualified Turtle as T
 import Prelude hiding        (FilePath, head)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid           ((<>))
-import TextShow
 import Control.Monad         (when, unless)
 import Control.Concurrent
 
@@ -23,13 +22,13 @@ runPitchExtractor = do
   args <- T.arguments
   currentDir <- T.pwd
   -------- File system setup --------
-  let searchQuery   = args !! 0
-      maxResults    = args !! 1
-      outputBase    = currentDir </> "vid-output"
-      outputDir     = outputBase </> Path.fromText (replace " " "_" searchQuery)
-      sourceDir     = currentDir </> ".vid-source"
-      sourceMp4Dir  = currentDir </> "vid-source-mp4"
-      tempDir       = currentDir </> ".temp"
+  let searchQuery     = args !! 0
+      maxTotalResults = args !! 1
+      outputBase      = currentDir </> "vid-output"
+      outputDir       = outputBase </> Path.fromText (replace " " "_" searchQuery)
+      sourceDir       = currentDir </> ".vid-source"
+      sourceMp4Dir    = currentDir </> "vid-source-mp4"
+      tempDir         = currentDir </> ".temp"
 
   T.echo "files system setup..."
   baseAlreadyExists <- T.testdir outputBase
@@ -49,7 +48,7 @@ runPitchExtractor = do
 
   -------- Get video ids --------
   T.echo "\nlooking for vids..."
-  videoIds <- searchYoutube searchQuery maxResults
+  videoIds <- searchYoutube searchQuery maxTotalResults
 
   let lessHugeThing :: VideoId -> IO ()
       lessHugeThing = hugeThing outputDir sourceDir sourceMp4Dir tempDir

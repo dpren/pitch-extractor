@@ -1,12 +1,21 @@
 module Utils.Misc where
 
-import Numeric           (showFFloat)
-import Data.List.Split   (splitOn)
+import Numeric              (showFFloat)
+import Data.List.Split      (splitOn)
 import qualified Turtle as T
-import Data.Text as Text (pack, unpack, replace, head, Text)
-import TextShow          (showt)
-import Numeric           (showFFloat)
+import Data.Text as Text    (pack, unpack, replace, head, Text)
+import Data.Attoparsec.Text (parseOnly, signed, decimal)
+import TextShow             (showt)
+import Numeric              (showFFloat)
 import Shelly
+
+parseInt :: (Integral a, Monad m) => Text -> m a
+parseInt = handle . parseOnly (signed decimal)
+
+handle :: Monad m => Either String a -> m a
+handle e = case e of
+  Left errMsg -> fail errMsg
+  Right a -> return a
 
 formatDouble :: Int -> Double -> T.Text
 formatDouble numOfDecimals floatNum = showt $ showFFloat (Just numOfDecimals) floatNum ""
