@@ -1,6 +1,4 @@
-module GetYinPitches
-  -- (extractPitchTo)
-  where
+module Yin where
 
 import Data.List
 import qualified Turtle as T
@@ -10,9 +8,9 @@ import Data.Monoid           ((<>))
 import TextShow              (showt)
 import Control.Monad         (foldM, foldM_, when)
 
-import CalculatePitchLocation
-import Utils.MediaConversion (createMonoAudio, spliceFile)
-import Utils.Misc            (toTxt, exec, formatDouble, getPythonPath, count)
+import PitchLocation
+import Util.Media           (createMonoAudio, spliceFile)
+import Util.Misc            (toTxt, exec, formatDouble, getPythonPath, count)
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 

@@ -1,4 +1,4 @@
-module CalculatePitchLocation where
+module PitchLocation where
 
 import Data.List
 import Data.Function (on)

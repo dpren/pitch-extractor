@@ -1,4 +1,4 @@
-module Utils.Misc where
+module Util.Misc where
 
 import Numeric              (showFFloat)
 import Data.List.Split      (splitOn)

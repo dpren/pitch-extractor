@@ -15,12 +15,12 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     PitchExtractor
-                     , GetYinPitches
-                     , YouTubeDownloader
-                     , CalculatePitchLocation
+                     , Yin
+                     , YouTube
+                     , PitchLocation
                      , Types
-                     , Utils.MediaConversion
-                     , Utils.Misc
+                     , Util.Media
+                     , Util.Misc
   build-depends:       base >= 4.7 && < 5
                      , wreq
                      , lens

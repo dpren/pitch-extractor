@@ -1,4 +1,4 @@
-module YouTubeDownloader where
+module YouTube where
 
 import Network.Wreq
 import Control.Lens
@@ -10,7 +10,8 @@ import Control.Monad              (when, unless)
 import Data.Monoid                ((<>))
 import qualified Turtle as T
 import Prelude hiding             (FilePath)
-import Utils.Misc                 (toTxt, exec, parseInt)
+
+import Util.Misc                 (toTxt, exec, parseInt)
 import Types
 
 api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"

@@ -10,10 +10,10 @@ import Data.Monoid           ((<>))
 import Control.Monad         (when, unless)
 import Control.Concurrent
 
-import GetYinPitches         (extractPitchTo)
-import YouTubeDownloader     (searchYoutube, download)
-import Utils.MediaConversion (convertToMp4, normalizeVids)
-import Utils.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
+import Yin                   (extractPitchTo)
+import YouTube               (searchYoutube, download)
+import Util.Media           (convertToMp4, normalizeVids)
+import Util.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
 import Types
 
 

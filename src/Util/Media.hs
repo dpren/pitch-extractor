@@ -1,11 +1,11 @@
-module Utils.MediaConversion where
+module Util.Media where
 
 import qualified Turtle as T
 import qualified Control.Foldl as Fold
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid ((<>))
 import Data.Text
-import Utils.Misc (toTxt, exec)
+import Util.Misc (toTxt, exec)
 
 convertToMp4 :: (T.FilePath, T.FilePath) -> IO (T.ExitCode, T.FilePath)
 convertToMp4 (inPath, outPath) = do
