@@ -1,7 +1,12 @@
+if (!navigator.requestMIDIAccess) {
+  alert("This browser doesn't support Web MIDI :( \n\nTry Chrome or Opera instead.\n\n");
+}
+
 Object.assign(this, R);
-const container = document.querySelector('#container');
-const dropzone = document.querySelector('#dropzone');
-const spinner = document.querySelector('#spinner');
+const containerEl = document.querySelector('#container');
+const dropzoneEl = document.querySelector('#dropzone');
+const spinnerEl = document.querySelector('#spinner');
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 let videoEls = [];
 let vidsLoaded = 0;
@@ -11,8 +16,9 @@ const rejectDotFiles = reject(pathEq(['name', '0'], '.'));
 const dropExtension = f => f.split('.')[0];
 const midiFromFilename = f => f.split('__')[0];
 
-dropzone.onchange = ev => {
-  spinner.style.display = 'inline-block';
+
+dropzoneEl.onchange = ev => {
+  spinnerEl.style.display = 'inline-block';
 
   const files = rejectDotFiles(Array.from(ev.target.files));
 
@@ -25,7 +31,7 @@ dropzone.onchange = ev => {
 
 const createVideoEl = (filename, src) => {
   const selectorId = 'v-' + dropExtension(filename);
-  container.insertAdjacentHTML('beforeend',
+  containerEl.insertAdjacentHTML('beforeend',
     `<video
       id="${selectorId}"
       src="${src}"
@@ -35,8 +41,16 @@ const createVideoEl = (filename, src) => {
   let vidEl = document.getElementById(selectorId);
   vidEl.midiNote = midiFromFilename(filename);
   vidEl.addEventListener('canplay', onCanPlay);
+  attachGainNode(vidEl);
   return vidEl;
 };
+
+const attachGainNode = vidEl => {
+  vidEl.audioSourceNode = audioCtx.createMediaElementSource(vidEl);
+  vidEl.gainNode = audioCtx.createGain();
+  vidEl.audioSourceNode.connect(vidEl.gainNode);
+  vidEl.gainNode.connect(audioCtx.destination);
+}
 
 const onCanPlay = ev => {
   vidsLoaded++;
@@ -57,9 +71,10 @@ const videoElsToIndexedGroups = compose(initRRIndex, indexGroupsByMidi, groupVid
 
 
 const onAllVideosLoaded = (videoEls) => {
-  spinner.style.display = 'none';
+  spinnerEl.style.display = 'none';
+  dropzoneEl.parentElement.style.display = 'none';
 
-  const videoMidiGroups = videoElsToIndexedGroups(videoEls)
+  let videoMidiGroups = window._videoMidiGroups = videoElsToIndexedGroups(videoEls);
 
   const setGetRoundRobin = (midiNote) => {
     const vidMidiGroup = videoMidiGroups[midiNote];
@@ -84,6 +99,9 @@ const onAllVideosLoaded = (videoEls) => {
     const videoEl = setGetRoundRobin(midiNote);
     if (!videoEl) return;
     videoEl.currentTime = 0;
+    videoEl.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+    videoEl.gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    videoEl.gainNode.gain.exponentialRampToValueAtTime(1, audioCtx.currentTime + 0.02);
     videoEl.style.display = 'inline';
     videoEl.play();
   }
@@ -91,12 +109,15 @@ const onAllVideosLoaded = (videoEls) => {
   const stopVideo = (midiNote) => {
     const videoEl = getRoundRobin(midiNote);
     if (!videoEl) return;
+    videoEl.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
     videoEl.style.display = 'none';
-    videoEl.pause();
+    setTimeout(() => {
+      videoEl.pause();
+    }, (0.2) * 500);
   }
 
   navigator.requestMIDIAccess()
-    .then(success, console.warn);
+    .then(success, console.error);
 
   function success(midi) {
     let inputs = midi.inputs.values();
