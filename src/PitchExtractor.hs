@@ -13,7 +13,7 @@ import Control.Concurrent
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
 import Util.Media            (convertToMp4, normalizeVids)
-import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
+import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, successData, uniqPathName)
 import Types
 
 
@@ -24,26 +24,28 @@ runPitchExtractor = do
   -------- File system setup --------
   let searchQuery     = args !! 0
       maxTotalResults = args !! 1
-      outputName      = Path.fromText (replace " " "_" searchQuery)
+      searchQueryName = T.fromText (replace " " "_" searchQuery)
       outputBase      = currentDir </> "vid-output"
-      outputDir       =   outputBase </> outputName
 
-      tempPrefix      = ".temp--" :: Text
-      tempBase        = currentDir </> Path.fromText (tempPrefix <> (toTxt outputName))
-      tempDir         =   tempBase </> "temp-wav"
-      sourceDir       =   tempBase </> "vid-source-download"
-      sourceMp4Dir    =   tempBase </> "vid-source-mp4"
-      
+  outputDir <- uniqPathName (outputBase </> searchQueryName)
+  let
+      outputName   = T.basename outputDir
+      tempPrefix   = ".temp--" :: Text
+      tempBase     = currentDir </> T.fromText (tempPrefix <> (toTxt outputName))
+      tempDir      =   tempBase </> "temp-wav"
+      sourceDir    =   tempBase </> "vid-source-download"
+      sourceMp4Dir =   tempBase </> "vid-source-mp4"
+
 
   T.echo "files system setup..."
   baseAlreadyExists <- T.testdir outputBase
   unless baseAlreadyExists (T.mkdir outputBase)
 
+  mkdirDestructive outputDir
   mkdirDestructive tempBase
   mkdirDestructive tempDir
   mkdirDestructive sourceDir
   mkdirDestructive sourceMp4Dir
-  mkdirDestructive outputDir
 
 
   T.view $ T.inshell "which youtube-dl" T.empty

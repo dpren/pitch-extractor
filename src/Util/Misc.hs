@@ -7,7 +7,7 @@ import Data.Text as Text     (pack, unpack, replace, head, Text)
 import Data.Attoparsec.Text  (parseOnly, signed, decimal)
 import TextShow              (showt)
 import Numeric               (showFFloat)
-import Control.Monad         (when)
+import Control.Monad         (when, (<=<))
 import Data.Monoid           ((<>))
 import qualified Shelly as S (shelly, which, toTextWarn)
 
@@ -44,21 +44,24 @@ mkdirDestructive path = do
   when dirExists (T.rmtree path)
   T.mkdir path
 
-mkdirEnum :: T.MonadIO io => T.FilePath -> io ()
-mkdirEnum path = do
+mkdirUniq :: T.MonadIO io => T.FilePath -> io ()
+mkdirUniq = T.mkdir <=< uniqPathName
+
+uniqPathName :: T.MonadIO io => T.FilePath -> io T.FilePath
+uniqPathName path = do
   dirExists <- T.testdir path
   case dirExists of
-    False -> T.mkdir path
-    True -> mkdirEnumWithNum path 0
+    False -> return path
+    True -> uniqPathNumbered path 0
       where
-        mkdirEnumWithNum :: T.MonadIO io => T.FilePath -> Int -> io ()
-        mkdirEnumWithNum path i = do
+        uniqPathNumbered :: T.MonadIO io => T.FilePath -> Int -> io T.FilePath
+        uniqPathNumbered path i = do
           let ip1 = i + 1
               ip1path = T.fromText ((toTxt path) <> "-" <> (showt ip1))
           enumDirExists <- T.testdir ip1path
           case enumDirExists of
-            True -> mkdirEnumWithNum path ip1
-            False -> T.mkdir ip1path
+            True -> uniqPathNumbered path ip1
+            False -> return ip1path
 
 
 successData :: [(T.ExitCode, b)] -> [b]
