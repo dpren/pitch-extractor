@@ -1,13 +1,15 @@
 module Util.Misc where
 
-import Numeric              (showFFloat)
-import Data.List.Split      (splitOn)
+import Numeric               (showFFloat)
+import Data.List.Split       (splitOn)
 import qualified Turtle as T
-import Data.Text as Text    (pack, unpack, replace, head, Text)
-import Data.Attoparsec.Text (parseOnly, signed, decimal)
-import TextShow             (showt)
-import Numeric              (showFFloat)
-import Shelly
+import Data.Text as Text     (pack, unpack, replace, head, Text)
+import Data.Attoparsec.Text  (parseOnly, signed, decimal)
+import TextShow              (showt)
+import Numeric               (showFFloat)
+import Control.Monad         (when)
+import Data.Monoid           ((<>))
+import qualified Shelly as S (shelly, which, toTextWarn)
 
 parseInt :: (Integral a, Monad m) => Text -> m a
 parseInt = handle . parseOnly (signed decimal)
@@ -42,6 +44,22 @@ mkdirDestructive path = do
   when dirExists (T.rmtree path)
   T.mkdir path
 
+mkdirEnum :: T.MonadIO io => T.FilePath -> io ()
+mkdirEnum path = do
+  dirExists <- T.testdir path
+  case dirExists of
+    False -> T.mkdir path
+    True -> mkdirEnumWithNum path 0
+      where
+        mkdirEnumWithNum :: T.MonadIO io => T.FilePath -> Int -> io ()
+        mkdirEnumWithNum path i = do
+          let ip1 = i + 1
+              ip1path = T.fromText ((toTxt path) <> "-" <> (showt ip1))
+          enumDirExists <- T.testdir ip1path
+          case enumDirExists of
+            True -> mkdirEnumWithNum path ip1
+            False -> T.mkdir ip1path
+
 
 successData :: [(T.ExitCode, b)] -> [b]
 successData xs = map snd $ filter wasSuccessful $ xs
@@ -51,11 +69,11 @@ successData xs = map snd $ filter wasSuccessful $ xs
 
 
 getPythonPath :: IO Text
-getPythonPath = shelly $ do
-    maybP <- which "python"
+getPythonPath = S.shelly $ do
+    maybP <- S.which "python"
     case maybP of
         Nothing -> error "Error: python not found in path."
-        Just p -> shelly $ toTextWarn p
+        Just p -> S.shelly $ S.toTextWarn p
 
 count :: Eq a => a -> [a] -> Int
 count x = length . filter (x ==)

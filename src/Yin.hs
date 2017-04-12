@@ -44,7 +44,7 @@ extractPitchTo outputDir tempDir filePath = do
   case bins of
     Left yinErr -> errMsg yinErr
     Right bins -> do
-      let pitchSegments = (qualifiedPitchSegments bins)
+      let pitchSegments = qualifiedPitchSegments bins
       when (pitchSegments == []) (T.echo ("× " <> fileName <> ": no pitches found"))
       foldM_
         (
@@ -77,7 +77,6 @@ extractPitchTo outputDir tempDir filePath = do
         )
         []
         pitchSegments
-
 
   where
     fileNamePath = filename filePath

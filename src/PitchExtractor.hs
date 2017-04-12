@@ -7,13 +7,13 @@ import qualified Turtle as T
 import Prelude hiding        (FilePath, head)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid           ((<>))
-import Control.Monad         (when, unless)
+import Control.Monad         (unless)
 import Control.Concurrent
 
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
-import Util.Media           (convertToMp4, normalizeVids)
-import Util.Misc            (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
+import Util.Media            (convertToMp4, normalizeVids)
+import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, successData)
 import Types
 
 
@@ -24,19 +24,25 @@ runPitchExtractor = do
   -------- File system setup --------
   let searchQuery     = args !! 0
       maxTotalResults = args !! 1
+      outputName      = Path.fromText (replace " " "_" searchQuery)
       outputBase      = currentDir </> "vid-output"
-      outputDir       = outputBase </> Path.fromText (replace " " "_" searchQuery)
-      sourceDir       = currentDir </> ".vid-source"
-      sourceMp4Dir    = currentDir </> "vid-source-mp4"
-      tempDir         = currentDir </> ".temp"
+      outputDir       =   outputBase </> outputName
+
+      tempPrefix      = ".temp--" :: Text
+      tempBase        = currentDir </> Path.fromText (tempPrefix <> (toTxt outputName))
+      tempDir         =   tempBase </> "temp-wav"
+      sourceDir       =   tempBase </> "vid-source-download"
+      sourceMp4Dir    =   tempBase </> "vid-source-mp4"
+      
 
   T.echo "files system setup..."
   baseAlreadyExists <- T.testdir outputBase
   unless baseAlreadyExists (T.mkdir outputBase)
 
+  mkdirDestructive tempBase
+  mkdirDestructive tempDir
   mkdirDestructive sourceDir
   mkdirDestructive sourceMp4Dir
-  mkdirDestructive tempDir
   mkdirDestructive outputDir
 
 
@@ -86,7 +92,7 @@ runPitchExtractor = do
 
   -------- Cleanup --------
   T.rmtree tempDir
-  T.rmtree sourceDir
+  -- T.rmtree sourceDir
   -- T.rmtree sourceMp4Dir
 
   T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
