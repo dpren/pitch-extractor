@@ -12,7 +12,7 @@ import Control.Concurrent
 
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
-import Util.Media            (convertToMp4, normalizeVids)
+import Util.Media            (convertToMp4, normalizeVidsIfPresent)
 import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, successData, uniqPathName)
 import Types
 
@@ -90,12 +90,12 @@ runPitchExtractor = do
   takeMVar c >>= T.echo
 
   -------- Normalize --------
-  normalizeVids outputDir
+  T.echo "normalizing..."
+  normalizeVidsIfPresent outputDir
 
   -------- Cleanup --------
-  T.rmtree tempDir
-  -- T.rmtree sourceDir
-  -- T.rmtree sourceMp4Dir
+  T.echo "cleanup..."
+  T.rmtree tempBase
 
   T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
 

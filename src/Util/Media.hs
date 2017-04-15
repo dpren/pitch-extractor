@@ -5,7 +5,9 @@ import qualified Control.Foldl as Fold
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid ((<>))
 import Data.Text
+import Data.List (null)
 import Util.Misc (toTxt, exec)
+import Control.Monad (unless)
 
 convertToMp4 :: (T.FilePath, T.FilePath) -> IO (T.ExitCode, T.FilePath)
 convertToMp4 (inPath, outPath) = do
@@ -31,9 +33,13 @@ spliceFile filePath startTime duration outputPath =
   <> " -t "  <> duration
   <> " "     <> (toTxt outputPath)
 
+normalizeVidsIfPresent :: T.FilePath -> IO ()
+normalizeVidsIfPresent outDir = do
+  files <- lsMp4s outDir
+  unless (Data.List.null files) (normalizeVids outDir)
+
 normalizeVids :: T.FilePath -> IO ()
 normalizeVids outDir = do
-  T.echo "normalizing..."
   normalizeCmdOut <- (exec . normalizeCmd) outDir
   case normalizeCmdOut of
     (T.ExitFailure n, err) -> error $ unpack ("ffmpeg-normalize failure" <> err)
