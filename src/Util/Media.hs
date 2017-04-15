@@ -55,7 +55,7 @@ normalizeCmd outDir =
   <> " -o "    -- output to "normalize/"
   <> " -u "    -- merge with video
   <> " -f "    -- overwrite
-  <> " -l -5 " -- dB peak volume
+  -- <> " -l -5 " -- dB peak volume
   <> (toTxt (outDir </> "*.mp4"))
 
 lsMp4s :: T.MonadIO io => T.FilePath -> io [T.FilePath]
