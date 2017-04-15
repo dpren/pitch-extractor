@@ -5,6 +5,7 @@ if (!navigator.requestMIDIAccess) {
 Object.assign(this, R);
 const containerEl = document.querySelector('#container');
 const dropzoneEl = document.querySelector('#dropzone');
+const dropzoneContainerEl = document.querySelector('#dropzone-container');
 const spinnerEl = document.querySelector('#spinner');
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -72,9 +73,9 @@ const videoElsToIndexedGroups = compose(initRRIndex, indexGroupsByMidi, groupVid
 
 const onAllVideosLoaded = (videoEls) => {
   spinnerEl.style.display = 'none';
-  dropzoneEl.parentElement.style.display = 'none';
+  dropzoneContainerEl.style.display = 'none';
 
-  let videoMidiGroups = window._videoMidiGroups = videoElsToIndexedGroups(videoEls);
+  let videoMidiGroups = videoElsToIndexedGroups(videoEls);
 
   const setGetRoundRobin = (midiNote) => {
     const vidMidiGroup = videoMidiGroups[midiNote];

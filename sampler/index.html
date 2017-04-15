@@ -5,12 +5,26 @@
       * {
         font-family: sans-serif;
       }
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
       video {
-        width: 300px;
-        max-height: 168px;
+        max-width: 400px;
+        max-height: 224px;
+        margin-right: -1px;
+        margin-left: -1px;
+      }
+      #container {
+        margin: 0px;
+        padding: 0px;
+      }
+      #dropzone-container {
+        margin: 20px;
+        margin-left: 25px;
       }
       #spinner {
-        margin: 10px;
+        margin-left: 25px;
         height: 20px;
         width: 20px;
         animation: rotation .5s infinite linear;
@@ -26,7 +40,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.23.0/ramda.min.js"></script>
   </head>
   <body>
-    <div>
+    <div id="dropzone-container">
       vid folder –> <input type="file" id="dropzone" webkitdirectory directory multiple/>
     </div>
     <div id="spinner" style="display: none;"></div>
