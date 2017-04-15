@@ -39,10 +39,9 @@ library
   pkgconfig-depends:   libavutil
                      , libavformat
                      , libavcodec
-                    --  , youtube-dl
-                    --  , python
-                    --  , libswscale
-                    --  , libavdevice
+                     , libavdevice
+                     , libswscale
+                     , python
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
                      , GeneralizedNewtypeDeriving
