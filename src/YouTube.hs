@@ -70,26 +70,22 @@ searchYoutube query maxTotalResultsTxt = do
 
   videoIds <- getPaginatedVideoIds query maxTotalResults [] "" maxPageResults
 
-  let resultsCount = length videoIds
-  when (resultsCount == 0) (error $ "\n No videos found for:  " ++ unpack query)
+  when (null videoIds) (error $ "\n No videos found for:  " ++ unpack query)
 
-  return $ (\x -> VideoId x) <$> videoIds
+  return $ VideoId <$> videoIds
 
 
 getPaginatedVideoIds query maxTotalResults prevVideoIds pageToken maxPageResults = do
-  r <- getWithOpts (opts query maxPageResults pageToken)
+  resp <- getWithOpts (opts query maxPageResults pageToken)
   let
     remainingCount = maxTotalResults - (length prevVideoIds)
-    newVideoIds    = take remainingCount (videoIdsFromResponse r)
+    newVideoIds    = take remainingCount (videoIdsFromResponse resp)
     totalVideoIds  = prevVideoIds ++ (take remainingCount newVideoIds)
-    nextPageToken  = nextPageTokenFromResponse r
+    nextPageToken  = nextPageTokenFromResponse resp
 
   case nextPageToken of
     Nothing -> return totalVideoIds
     Just nextPageToken ->
-      case (length newVideoIds > 0) of
-        False -> return totalVideoIds
-        True  ->
-          case (length totalVideoIds < maxTotalResults) of
-            False -> return totalVideoIds
-            True  -> getPaginatedVideoIds query maxTotalResults totalVideoIds nextPageToken maxPageResults
+      case null newVideoIds || (length totalVideoIds >= maxTotalResults) of
+        True -> return totalVideoIds
+        False -> getPaginatedVideoIds query maxTotalResults totalVideoIds nextPageToken maxPageResults
