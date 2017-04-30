@@ -11,7 +11,7 @@ import Data.Monoid                ((<>))
 import qualified Turtle as T
 import Prelude hiding             (FilePath)
 
-import Util.Misc                 (toTxt, exec, parseInt)
+import Util.Misc                  (toTxt, exec, parseInt)
 import Types
 
 api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
@@ -29,7 +29,7 @@ download path videoId = do
       <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
       <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
       <> " --min-sleep-interval 1 "
-      <> " --max-sleep-interval 200 "
+      <> " --max-sleep-interval 120 "
       <> " --no-warnings "
       <> " --abort-on-error "
       -- <> " --ignore-errors "
