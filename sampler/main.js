@@ -1,5 +1,30 @@
+const noMidiMsgEl = "<h4 id='midi-err'>🎹 No MIDI device connected.</h4>";
+const insertNoMidiMsgEl = () => document.body.insertAdjacentHTML('beforeend', noMidiMsgEl);
+
+const checkMidiRecursively = () =>
+  setTimeout(() => {
+    navigator.requestMIDIAccess()
+      .then(m => m.inputs.size > 0 ?
+          document.querySelector('#midi-err').remove()
+            : checkMidiRecursively()
+      , console.error);
+  }, 500);
+
+const initialMidiCheck = () =>
+  navigator.requestMIDIAccess()
+    .then(m => {
+      // midi is not connected
+      if (m.inputs.size <= 0) {
+        insertNoMidiMsgEl();
+        checkMidiRecursively();
+      }
+    }, console.error);
+
+
 if (!navigator.requestMIDIAccess) {
   alert("This browser doesn't support Web MIDI :( \n\nTry Chrome or Opera instead.\n\n");
+} else {
+  initialMidiCheck();
 }
 
 Object.assign(this, R);
