@@ -12,8 +12,8 @@ import Control.Concurrent
 
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
-import Util.Media            (convertToMp4, normalizeVidsIfPresent)
-import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, successData, uniqPathName)
+import Util.Media            (convertToMp4Cmd, normalizeVidsIfPresent)
+import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, uniqPathName)
 import Types
 
 
@@ -47,46 +47,23 @@ runPitchExtractor = do
   mkdirDestructive sourceDir
   mkdirDestructive sourceMp4Dir
 
-
-  T.view $ T.inshell "which youtube-dl" T.empty
-  T.view $ T.inshell "which ffmpeg" T.empty
-  T.view $ T.inshell "which python" T.empty
-  T.view $ T.inshell "which ffmpeg-normalize" T.empty
-
+  let videoDirs = VideoDirs {
+      out    = outputDir
+    , src    = sourceDir
+    , srcMp4 = sourceMp4Dir
+    , tmp    = tempDir
+  }
 
   -------- Get video ids --------
   T.echo "\nlooking for vids..."
   videoIds <- searchYoutube searchQuery maxTotalResults
-
-  let lessHugeThing :: VideoId -> IO ()
-      lessHugeThing = hugeThing outputDir sourceDir sourceMp4Dir tempDir
-
-      -------- Download --------
-      produce :: Chan (Maybe VideoId) -> VideoId -> IO ()
-      produce ch videoId = do
-        T.echo $ "  downloading: " <> (fromId videoId)
-        dldVid <- download sourceDir videoId
-        case dldVid of
-          (T.ExitFailure _, err)  -> T.echo $ "Download error: " <> (fromId videoId)
-          (T.ExitSuccess, stdout) -> writeChan ch (Just videoId)
-
-      -------- Process --------
-      consume :: Chan (Maybe VideoId) -> IO Text
-      consume ch = do
-        maybeStr <- readChan ch
-        case maybeStr of
-          Just videoId -> do
-            T.echo $ "  processing: " <> (fromId videoId)
-            lessHugeThing videoId
-            consume ch
-          Nothing -> return "Done."
-
   mapM_ print videoIds
 
+  -------- Concurrently download/process --------
   chan <- newChan
-  p <- forkJoin $ mapM_ (produce chan) videoIds >>
+  p <- forkJoin $ mapM_ (produce chan sourceDir) videoIds >>
                   writeChan chan Nothing
-  c <- forkJoin $ consume chan
+  c <- forkJoin $ consume chan videoDirs
   takeMVar c >>= T.echo
 
   -------- Normalize --------
@@ -100,29 +77,21 @@ runPitchExtractor = do
   T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
 
 
--- todo: make this a record
-hugeThing :: T.FilePath ->
-             T.FilePath ->
-             T.FilePath ->
-             T.FilePath ->
-             VideoId -> IO ()
-hugeThing outputDir sourceDir sourceMp4Dir tempDir videoId = do
-  -------- Convert source to 44.1k mp4 --------
-  srcPath <- T.fold (T.find (T.has $ T.text (fromId videoId)) sourceDir) F.head
+processVideo :: VideoDirs -> VideoId -> IO ()
+processVideo vDirs videoId = do
+  -- Build filepath references
+  srcPath <- T.fold (T.find (T.has $ T.text (fromId videoId)) (src vDirs)) F.head
   case srcPath of
     Nothing -> T.echo $ "Video file not found: " <> (fromId videoId)
-    Just path -> do
-      let sourceDirFiles   = [T.filename path]
-          sourcePathsOrig  = map (sourceDir </>) sourceDirFiles
-          sourcePathsMp4   = map (\x -> sourceMp4Dir </> x `replaceExtension` "mp4") sourceDirFiles
-          sourcePathsInOut = zip sourcePathsOrig sourcePathsMp4
-
-      mp4ConversionOutputs <- mapM convertToMp4 sourcePathsInOut
-
-      let successfulMp4Paths = successData mp4ConversionOutputs :: [T.FilePath]
-
-      -------- Pitch extraction from source-mp4 --------
-      mapM_ (extractPitchTo outputDir tempDir) successfulMp4Paths
+    Just srcPath -> do
+      let srcDirFileName = T.filename srcPath
+          srcPathOrig    = (src vDirs) </> srcDirFileName
+          srcPathMp4     = (srcMp4 vDirs) </> srcDirFileName `replaceExtension` "mp4"
+      -- Convert source to 44.1k mp4 to use for extraction
+      cmdOutput <- convertToMp4Cmd srcPathOrig srcPathMp4
+      case cmdOutput of
+        (T.ExitFailure n, err) -> T.echo err
+        (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMp4
 
 
 
@@ -131,3 +100,23 @@ forkJoin task = do
   mv <- newEmptyMVar
   forkIO (task >>= putMVar mv)
   return mv
+
+-- Download
+produce :: Chan (Maybe VideoId) -> T.FilePath -> VideoId -> IO ()
+produce ch sourceDir videoId = do
+  T.echo $ "  downloading: " <> (fromId videoId)
+  dldVid <- download sourceDir videoId
+  case dldVid of
+    (T.ExitFailure _, err)  -> T.echo $ "Download error: " <> (fromId videoId)
+    (T.ExitSuccess, stdout) -> writeChan ch (Just videoId)
+
+-- Process
+consume :: Chan (Maybe VideoId) -> VideoDirs -> IO Text
+consume ch videoDirs = do
+  maybeStr <- readChan ch
+  case maybeStr of
+    Just videoId -> do
+      T.echo $ "  processing: " <> (fromId videoId)
+      processVideo videoDirs videoId
+      consume ch videoDirs
+    Nothing -> return "Done."

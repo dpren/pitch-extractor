@@ -64,13 +64,6 @@ uniqPathName path = do
             False -> return ip1path
 
 
-successData :: [(T.ExitCode, b)] -> [b]
-successData xs = map snd $ filter wasSuccessful $ xs
-  where
-    wasSuccessful :: (T.ExitCode, b) -> Bool
-    wasSuccessful (a, _) = a == T.ExitSuccess
-
-
 getPythonPath :: IO Text
 getPythonPath = S.shelly $ do
     maybP <- S.which "python"

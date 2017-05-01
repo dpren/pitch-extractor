@@ -9,15 +9,10 @@ import Data.List (null)
 import Util.Misc (toTxt, exec)
 import Control.Monad (unless)
 
-convertToMp4 :: (T.FilePath, T.FilePath) -> IO (T.ExitCode, T.FilePath)
-convertToMp4 (inPath, outPath) = do
-  cmdOut <- mp4Cmd
-  return (fst cmdOut, outPath)
-  where
-    mp4Cmd = exec $
-      "ffmpeg -loglevel error"
-      <> " -i "        <> toTxt inPath
-      <> " -ar 44.1k " <> toTxt outPath
+convertToMp4Cmd inPath outPath = exec $
+  "ffmpeg -loglevel error"
+  <> " -i "        <> toTxt inPath
+  <> " -ar 44.1k " <> toTxt outPath
 
 createMonoAudio :: T.FilePath -> T.FilePath -> T.Text
 createMonoAudio filePath outputPath =
