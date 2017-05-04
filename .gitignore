@@ -5,7 +5,5 @@
 *.webm
 .DS_Store
 .stack-work/
-.temp/
-.vid-source/
+.temp*/
 vid-output/
-vid-source-mp4/

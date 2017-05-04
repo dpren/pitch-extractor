@@ -13,36 +13,35 @@ import Control.Concurrent
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
 import Util.Media            (convertToMp4Cmd, normalizeVidsIfPresent)
-import Util.Misc             (toTxt, exec, dropDotFiles, mkdirDestructive, uniqPathName)
+import Util.Misc             (toTxt, mkdirDestructive, uniqPathName)
 import Types
 
 
 runPitchExtractor :: IO ()
-runPitchExtractor = do
+runPitchExtractor = T.sh (do
   args <- T.arguments
   currentDir <- T.pwd
   -------- File system setup --------
+  T.echo "files system setup..."
   let searchQuery     = args !! 0
       maxTotalResults = args !! 1
       searchQueryName = T.fromText (replace " " "_" searchQuery)
       outputBase      = currentDir </> "vid-output"
 
   outputDir <- uniqPathName (outputBase </> searchQueryName)
-  let
-      outputName   = T.basename outputDir
-      tempPrefix   = ".temp--" :: Text
-      tempBase     = currentDir </> T.fromText (tempPrefix <> (toTxt outputName))
-      tempDir      =   tempBase </> "temp-wav"
+  let outputName   = T.basename outputDir
+      tempPrefix   = ".temp-" :: Text
+      tempName     = tempPrefix <> (toTxt outputName)
+
+  tempBase <- T.using (T.mktempdir currentDir tempName)
+  let tempDir      =   tempBase </> "temp-wav"
       sourceDir    =   tempBase </> "vid-source-download"
       sourceMp4Dir =   tempBase </> "vid-source-mp4"
 
-
-  T.echo "files system setup..."
   baseAlreadyExists <- T.testdir outputBase
   unless baseAlreadyExists (T.mkdir outputBase)
 
   mkdirDestructive outputDir
-  mkdirDestructive tempBase
   mkdirDestructive tempDir
   mkdirDestructive sourceDir
   mkdirDestructive sourceMp4Dir
@@ -54,6 +53,13 @@ runPitchExtractor = do
     , tmp    = tempDir
   }
 
+  T.liftIO $ ioTasks videoDirs searchQuery maxTotalResults
+
+  T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
+  )
+
+ioTasks :: VideoDirs -> Text -> Text -> IO ()
+ioTasks vDirs searchQuery maxTotalResults = do
   -------- Get video ids --------
   T.echo "\nlooking for vids..."
   videoIds <- searchYoutube searchQuery maxTotalResults
@@ -61,20 +67,14 @@ runPitchExtractor = do
 
   -------- Concurrently download/process --------
   chan <- newChan
-  p <- forkJoin $ mapM_ (produce chan sourceDir) videoIds >>
+  p <- forkJoin $ mapM_ (produce chan (src vDirs)) videoIds >>
                   writeChan chan Nothing
-  c <- forkJoin $ consume chan videoDirs
+  c <- forkJoin $ consume chan vDirs
   takeMVar c >>= T.echo
 
   -------- Normalize --------
   T.echo "normalizing..."
-  normalizeVidsIfPresent outputDir
-
-  -------- Cleanup --------
-  T.echo "cleanup..."
-  T.rmtree tempBase
-
-  T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
+  normalizeVidsIfPresent (out vDirs)
 
 
 processVideo :: VideoDirs -> VideoId -> IO ()
@@ -93,13 +93,6 @@ processVideo vDirs videoId = do
         (T.ExitFailure n, err) -> T.echo err
         (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMp4
 
-
-
-forkJoin :: IO a -> IO (MVar a)
-forkJoin task = do
-  mv <- newEmptyMVar
-  forkIO (task >>= putMVar mv)
-  return mv
 
 -- Download
 produce :: Chan (Maybe VideoId) -> T.FilePath -> VideoId -> IO ()
@@ -120,3 +113,10 @@ consume ch videoDirs = do
       processVideo videoDirs videoId
       consume ch videoDirs
     Nothing -> return "Done."
+
+
+forkJoin :: IO a -> IO (MVar a)
+forkJoin task = do
+  mv <- newEmptyMVar
+  forkIO (task >>= putMVar mv)
+  return mv
