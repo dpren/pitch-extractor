@@ -4,6 +4,7 @@ YouTube Pitch Extractor
 It finds segments of YouTube videos that have a musical pitch and extracts
 them to a directory, indexed by note - which can then be loaded into the sampler and performed with a MIDI keyboard.
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kZSk0LsozFY" frameborder="0" allowfullscreen></iframe>
 
 Prerequisites
 ----
