@@ -28,6 +28,10 @@ strToDbls = map read . (splitOn ",")
 toTxt :: T.FilePath -> T.Text
 toTxt = T.format T.fp
 
+-- note: can't contain newlines
+echoTxt :: T.MonadIO io => Text -> io ()
+echoTxt = T.echo . T.unsafeTextToLine
+
 isDotFile :: T.FilePath -> Bool
 isDotFile x = Text.head (toTxt x) /= '.'
 

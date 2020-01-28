@@ -13,7 +13,7 @@ import Control.Concurrent
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
 import Util.Media            (convertToMp4Cmd, normalizeVidsIfPresent)
-import Util.Misc             (toTxt, mkdirDestructive, uniqPathName)
+import Util.Misc             (echoTxt, toTxt, mkdirDestructive, uniqPathName)
 import Types
 
 
@@ -22,7 +22,7 @@ runPitchExtractor = T.sh (do
   args <- T.arguments
   currentDir <- T.pwd
   -------- File system setup --------
-  T.echo "files system setup..."
+  echoTxt "files system setup..."
   let searchQuery     = args !! 0
       maxTotalResults = args !! 1
       searchQueryName = T.fromText (replace " " "_" searchQuery)
@@ -55,13 +55,14 @@ runPitchExtractor = T.sh (do
 
   T.liftIO $ ioTasks videoDirs searchQuery maxTotalResults
 
-  T.echo $ "Successful videos extracted to: " <> (toTxt outputDir)
+  echoTxt $ "Successful videos extracted to: " <> (toTxt outputDir)
   )
 
 ioTasks :: VideoDirs -> Text -> Text -> IO ()
 ioTasks vDirs searchQuery maxTotalResults = do
   -------- Get video ids --------
-  T.echo "\nlooking for vids..."
+  echoTxt ""
+  echoTxt "looking for vids..."
   videoIds <- searchYoutube searchQuery maxTotalResults
   mapM_ print videoIds
 
@@ -70,10 +71,10 @@ ioTasks vDirs searchQuery maxTotalResults = do
   p <- forkJoin $ mapM_ (produce chan (src vDirs)) videoIds >>
                   writeChan chan Nothing
   c <- forkJoin $ consume chan vDirs
-  takeMVar c >>= T.echo
+  takeMVar c >>= echoTxt
 
   -------- Normalize --------
-  T.echo "normalizing..."
+  echoTxt "normalizing..."
   normalizeVidsIfPresent (out vDirs)
 
 
@@ -82,7 +83,7 @@ processVideo vDirs videoId = do
   -- Build filepath references
   srcPath <- T.fold (T.find (T.has $ T.text (fromId videoId)) (src vDirs)) F.head
   case srcPath of
-    Nothing -> T.echo $ "Video file not found: " <> (fromId videoId)
+    Nothing -> echoTxt $ "Video file not found: " <> (fromId videoId)
     Just srcPath -> do
       let srcDirFileName = T.filename srcPath
           srcPathOrig    = (src vDirs) </> srcDirFileName
@@ -90,17 +91,17 @@ processVideo vDirs videoId = do
       -- Convert source to 44.1k mp4 to use for extraction
       cmdOutput <- convertToMp4Cmd srcPathOrig srcPathMp4
       case cmdOutput of
-        (T.ExitFailure n, err) -> T.echo err
+        (T.ExitFailure n, err) -> echoTxt err
         (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMp4
 
 
 -- Download
 produce :: Chan (Maybe VideoId) -> T.FilePath -> VideoId -> IO ()
 produce ch sourceDir videoId = do
-  T.echo $ "  downloading: " <> (fromId videoId)
+  echoTxt $ "  downloading: " <> (fromId videoId)
   dldVid <- download sourceDir videoId
   case dldVid of
-    (T.ExitFailure _, err)  -> T.echo $ "Download error: " <> (fromId videoId)
+    (T.ExitFailure _, err)  -> echoTxt $ "Download error: " <> (fromId videoId)
     (T.ExitSuccess, stdout) -> writeChan ch (Just videoId)
 
 -- Process
@@ -109,7 +110,7 @@ consume ch videoDirs = do
   maybeStr <- readChan ch
   case maybeStr of
     Just videoId -> do
-      T.echo $ "  processing: " <> (fromId videoId)
+      echoTxt $ "  processing: " <> (fromId videoId)
       processVideo videoDirs videoId
       consume ch videoDirs
     Nothing -> return "Done."

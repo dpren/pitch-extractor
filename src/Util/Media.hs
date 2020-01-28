@@ -66,6 +66,6 @@ lsByPattern :: T.MonadIO io => T.Pattern a -> T.FilePath -> io [T.FilePath]
 lsByPattern pattern dir = T.fold (
     T.ls dir
     T.& fmap (T.format T.fp)
-    T.& T.grep pattern
+    T.& T.grepText pattern
     T.& fmap T.fromText
   ) Fold.list

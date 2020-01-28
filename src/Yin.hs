@@ -10,7 +10,7 @@ import Control.Monad         (foldM, foldM_, when)
 
 import PitchLocation
 import Util.Media           (createMonoAudio, spliceFile)
-import Util.Misc            (toTxt, exec, formatDouble, getPythonPath, count)
+import Util.Misc            (echoTxt, toTxt, exec, formatDouble, getPythonPath, count)
 
 parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 
@@ -45,7 +45,7 @@ extractPitchTo outputDir tempDir filePath = do
     Left yinErr -> errMsg yinErr
     Right bins -> do
       let pitchSegments = qualifiedPitchSegments bins
-      when (pitchSegments == []) (T.echo ("× " <> fileName <> ": no pitches found"))
+      when (pitchSegments == []) (echoTxt ("× " <> fileName <> ": no pitches found"))
       foldM_
         (
           \prevNotes segment -> do
@@ -68,10 +68,10 @@ extractPitchTo outputDir tempDir filePath = do
                   (T.ExitFailure n, err)  -> errMsg err >> return prevNotes
                   (T.ExitSuccess, stdout) -> do
 
-                    T.echo $ "✔ " <> outputName
-                    T.echo $ "     time: " <> formatDouble 2 startTime
-                    T.echo $ " duration: " <> formatDouble 2 duration
-                    T.echo $ "  segment: " <> _segment
+                    echoTxt $ "✔ " <> outputName
+                    echoTxt $ "     time: " <> formatDouble 2 startTime
+                    echoTxt $ " duration: " <> formatDouble 2 duration
+                    echoTxt $ "  segment: " <> _segment
 
                     return (midiNote : prevNotes)
         )
@@ -82,4 +82,4 @@ extractPitchTo outputDir tempDir filePath = do
     fileNamePath = filename filePath
     tempPath = tempDir </> fileNamePath
     fileName = toTxt fileNamePath
-    errMsg e = T.echo ("× " <> fileName <> " Error:\n  " <> e)
+    errMsg e = echoTxt ("× " <> fileName <> " Error: " <> e)

@@ -41,7 +41,6 @@ library
                      , libavcodec
                      , libavdevice
                      , libswscale
-                     , python
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
                      , GeneralizedNewtypeDeriving

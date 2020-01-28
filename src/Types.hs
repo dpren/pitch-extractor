@@ -5,7 +5,7 @@ import Data.Typeable
 import qualified Turtle as T
 
 
-newtype VideoId = VideoId Text deriving (Eq, Read, Show, Monoid)
+newtype VideoId = VideoId Text deriving (Eq, Read, Show, Monoid, Semigroup)
 
 fromId :: VideoId -> Text
 fromId (VideoId vidId) = vidId

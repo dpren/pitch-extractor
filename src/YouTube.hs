@@ -14,7 +14,7 @@ import Prelude hiding             (FilePath)
 import Util.Misc                  (toTxt, exec, parseInt)
 import Types
 
-api_key = "AIzaSyCCYfqHdQPxyhbNAPlUeSecvBnoQK0kQhk"
+api_key = "AIzaSyAW8YpOSzVY" <> "liFrN5GoXtyr7BtU-N7998s"
 api_url = "https://www.googleapis.com/youtube/v3/search?"
 
 download :: T.FilePath -> VideoId -> IO (T.ExitCode, VideoId)
