@@ -4,10 +4,11 @@ const insertNoMidiMsgEl = () => document.body.insertAdjacentHTML('beforeend', no
 const checkMidiRecursively = () =>
   setTimeout(() => {
     navigator.requestMIDIAccess()
-      .then(m => m.inputs.size > 0 ?
-          document.querySelector('#midi-err').remove()
-            : checkMidiRecursively()
-      , console.error);
+      .then(m => {
+        m.inputs.size > 0
+          ? document.querySelector('#midi-err').remove()
+          : checkMidiRecursively()
+      }, console.error);
   }, 500);
 
 const initialMidiCheck = () =>
@@ -32,7 +33,7 @@ const containerEl = document.querySelector('#container');
 const dropzoneEl = document.querySelector('#dropzone');
 const dropzoneContainerEl = document.querySelector('#dropzone-container');
 const spinnerEl = document.querySelector('#spinner');
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioCtx;
 
 let videoEls = [];
 let vidsLoaded = 0;
@@ -45,6 +46,8 @@ const midiFromFilename = f => f.split('__')[0];
 
 dropzoneEl.onchange = ev => {
   spinnerEl.style.display = 'inline-block';
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
   const files = rejectDotFiles(Array.from(ev.target.files));
 
