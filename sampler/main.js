@@ -36,6 +36,7 @@ const spinnerEl = document.querySelector('#spinner');
 let audioCtx;
 
 let videoEls = [];
+window.videoEls = videoEls;
 let vidsLoaded = 0;
 let totalVidCount = 0;
 
@@ -65,6 +66,7 @@ const createVideoEl = (filename, src) => {
       id="${selectorId}"
       src="${src}"
       style="display: none;"
+      class=""
     ></video>`
   );
   let vidEl = document.getElementById(selectorId);
@@ -90,13 +92,21 @@ const onCanPlay = ev => {
 };
 
 
-const groupVidsByMidi = groupWith(eqProps('midiNote'));
 
-const indexGroupsByMidi = indexBy(grp => grp[0].midiNote);
+const videoElsToIndexedGroups = videoEls => {
+  const sorted = sortBy(prop(`midiNote`), videoEls);
 
-const initRRIndex = map(x => { x.rrIndex = 0; return x; });
+  const groups = groupWith(eqProps("midiNote"), sorted);
 
-const videoElsToIndexedGroups = compose(initRRIndex, indexGroupsByMidi, groupVidsByMidi);
+  const ixdGrps = indexBy(grp => grp[0].midiNote, groups);
+
+  const initd = map(x => {
+    x.rrIndex = 0;
+    return x;
+  }, ixdGrps);
+
+  return initd;
+}
 
 
 const onAllVideosLoaded = (videoEls) => {
@@ -104,9 +114,11 @@ const onAllVideosLoaded = (videoEls) => {
   dropzoneContainerEl.style.display = 'none';
 
   let videoMidiGroups = videoElsToIndexedGroups(videoEls);
+  window.videoMidiGroups = videoMidiGroups;
 
   const setGetRoundRobin = (midiNote) => {
     const vidMidiGroup = videoMidiGroups[midiNote];
+
     if (!vidMidiGroup) return;
     const nextIndex = vidMidiGroup.rrIndex + 1;
 
@@ -124,25 +136,40 @@ const onAllVideosLoaded = (videoEls) => {
     return vidMidiGroup[vidMidiGroup.rrIndex];
   }
 
-  const playVideo = (midiNote) => {
+  const scaleVel = unit => 1 - Math.log(1 + (10 * (1 - unit))) / Math.log(11);
+
+  const playVideo = (midiNote, velocity) => {
     const videoEl = setGetRoundRobin(midiNote);
+    // console.log(midiNote, velocity, scaleVel(velocity))
     if (!videoEl) return;
     videoEl.currentTime = 0;
     videoEl.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
     videoEl.gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    videoEl.gainNode.gain.exponentialRampToValueAtTime(1, audioCtx.currentTime + 0.02);
-    videoEl.style.display = 'inline';
+    videoEl.gainNode.gain.exponentialRampToValueAtTime(scaleVel(velocity), audioCtx.currentTime + 0.03);
+    // videoEl.className = "";
+    videoEl.style.display = "inline";
+    // videoEl.style.opacity = "1";
     videoEl.play();
+    setTimeout(() => {
+      videoEl.style.display = "none";
+    }, 1800);
   }
 
   const stopVideo = (midiNote) => {
     const videoEl = getRoundRobin(midiNote);
     if (!videoEl) return;
-    videoEl.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
-    videoEl.style.display = 'none';
+    videoEl.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+    videoEl.className = "fadeOut";
     setTimeout(() => {
-      videoEl.pause();
-    }, (0.2) * 500);
+      videoEl.className = "";
+      videoEl.style.display = "none";
+      // videoEl.style.opacity = "0";
+      // videoEl.style.display = "none";
+      // videoEl.pause();
+      // videoEl.stopVideo
+      // setTimeout(() => {
+      // }, 200);
+    }, 500);
   }
 
   navigator.requestMIDIAccess()
@@ -156,14 +183,18 @@ const onAllVideosLoaded = (videoEls) => {
     }
   }
 
-  function onMIDIMessage(message) {
-    const midiNote = message.data[1];
+  function onMIDIMessage({ data }) {
+    // const channel = data[0] & 0xf;
+    const command = data[0] >> 4;
+    const midiNote = data[1];
+    const velocity = data[2] / 127;
+    // console.log(command, midiNote, velocity)
 
-    if (message.data[0] === 144 && message.data[2] > 0) {
-      playVideo(midiNote);
+    if (command === 9 && velocity > 0) {
+      playVideo(midiNote, velocity);
     }
 
-    if (message.data[0] === 128 || message.data[2] === 0) {
+    if (command === 8) { //|| velocity <= 0) {
       stopVideo(midiNote);
     }
   }
