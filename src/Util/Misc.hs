@@ -68,11 +68,11 @@ uniqPathName path = do
             False -> return ip1path
 
 
-getPythonPath :: IO Text
+getPythonPath :: T.MonadIO io => io Text
 getPythonPath = S.shelly $ do
-    maybP <- S.which "python"
+    maybP <- S.which "python3"
     case maybP of
-        Nothing -> error "Error: python not found in path."
+        Nothing -> error "Error: python3 not found in path."
         Just p -> S.shelly $ S.toTextWarn p
 
 count :: Eq a => a -> [a] -> Int

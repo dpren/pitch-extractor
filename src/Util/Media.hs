@@ -50,14 +50,13 @@ normalizeVids outDir = do
         normalizedFiles
       T.rmdir normalizedDir
 
+-- https://github.com/slhck/ffmpeg-normalize#detailed-options
+-- outputs to `.<temp>/normalized/`
 normalizeCmd :: T.FilePath -> Text
-normalizeCmd outDir =
+normalizeCmd inputDir =
   "ffmpeg-normalize"
-  <> " -o "    -- output to "normalize/"
-  <> " -u "    -- merge with video
   <> " -f "    -- overwrite
-  -- <> " -l -5 " -- dB peak volume
-  <> (toTxt (outDir </> "*.mp4"))
+  <> (toTxt (inputDir </> "*.mp4"))
 
 lsMp4s :: T.MonadIO io => T.FilePath -> io [T.FilePath]
 lsMp4s = lsByPattern (T.ends ".mp4")

@@ -13,7 +13,7 @@ import Control.Concurrent
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
 import Util.Media            (convertToMp4Cmd, normalizeVidsIfPresent)
-import Util.Misc             (echoTxt, toTxt, mkdirDestructive, uniqPathName)
+import Util.Misc             (echoTxt, toTxt, mkdirDestructive, uniqPathName, getPythonPath)
 import Types
 
 
@@ -22,6 +22,8 @@ runPitchExtractor = T.sh (do
   args <- T.arguments
   currentDir <- T.pwd
   -------- File system setup --------
+  getPythonPath
+
   echoTxt "files system setup..."
   let searchQuery     = args !! 0
       maxTotalResults = args !! 1
@@ -61,7 +63,6 @@ runPitchExtractor = T.sh (do
 ioTasks :: VideoDirs -> Text -> Text -> IO ()
 ioTasks vDirs searchQuery maxTotalResults = do
   -------- Get video ids --------
-  echoTxt ""
   echoTxt "looking for vids..."
   videoIds <- searchYoutube searchQuery maxTotalResults
   mapM_ print videoIds
