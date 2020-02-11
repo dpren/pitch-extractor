@@ -9,7 +9,7 @@ import Data.List (null)
 import Util.Misc (toTxt, exec)
 import Control.Monad (unless)
 
-convertToMp4Cmd inPath outPath = exec $
+convertToMkvCmd inPath outPath = exec $
   "ffmpeg -loglevel error"
   <> " -i "        <> toTxt inPath
   <> " -ar 44.1k " <> toTxt outPath
@@ -30,7 +30,7 @@ spliceFile filePath startTime duration outputPath =
 
 normalizeVidsIfPresent :: T.FilePath -> IO ()
 normalizeVidsIfPresent outDir = do
-  files <- lsMp4s outDir
+  files <- lsMkvs outDir
   unless (Data.List.null files) (normalizeVids outDir)
 
 normalizeVids :: T.FilePath -> IO ()
@@ -39,10 +39,10 @@ normalizeVids outDir = do
   case normalizeCmdOut of
     (T.ExitFailure n, err) -> error $ unpack ("ffmpeg-normalize failure" <> err)
     (T.ExitSuccess, _) -> do
-      T.echo "ffmpeg-normalize success"
       let normalizedDir = outDir </> "normalized"
-      originalFiles   <- lsMp4s outDir
-      normalizedFiles <- lsMp4s normalizedDir
+      T.echo "ffmpeg-normalize success"
+      originalFiles   <- lsMkvs outDir
+      normalizedFiles <- lsMkvs normalizedDir
 
       mapM_ T.rm originalFiles
       mapM_
@@ -51,15 +51,16 @@ normalizeVids outDir = do
       T.rmdir normalizedDir
 
 -- https://github.com/slhck/ffmpeg-normalize#detailed-options
--- outputs to `.<temp>/normalized/`
 normalizeCmd :: T.FilePath -> Text
-normalizeCmd inputDir =
-  "ffmpeg-normalize"
-  <> " -f "    -- overwrite
-  <> (toTxt (inputDir </> "*.mp4"))
+normalizeCmd outDir =
+  "ffmpeg-normalize "
+  -- <> " -f "    -- overwrite
+  <> (toTxt (outDir </> "*.mkv")) -- input
+  <> " --sample-rate 44100 "
+  <> " --output-folder " <> (toTxt (outDir </> "normalized"))
 
-lsMp4s :: T.MonadIO io => T.FilePath -> io [T.FilePath]
-lsMp4s = lsByPattern (T.ends ".mp4")
+lsMkvs :: T.MonadIO io => T.FilePath -> io [T.FilePath]
+lsMkvs = lsByPattern (T.ends ".mkv")
 
 lsByPattern :: T.MonadIO io => T.Pattern a -> T.FilePath -> io [T.FilePath]
 lsByPattern pattern dir = T.fold (

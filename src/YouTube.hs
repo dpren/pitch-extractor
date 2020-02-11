@@ -36,14 +36,16 @@ download path videoId = do
       <> " --no-check-certificate"
       <> " -- " <> (fromId videoId)
 
+-- opts duration query maxPageResults pageToken = defaults
 opts query maxPageResults pageToken = defaults
   & param "part"            .~ ["snippet"]
   & param "key"             .~ [api_key]
   & param "maxResults"      .~ [maxPageResults]
   & param "type"            .~ ["video"]
   & param "duration"        .~ ["short"]
-  -- & param "videoDefinition" .~ ["standard"]
+  -- & param "duration"        .~ ["medium"]
   & param "order"           .~ ["date"]
+  -- & param "order"           .~ ["relevance"]
   & param "pageToken"       .~ [pageToken]
   & param "q"               .~ [query]
 

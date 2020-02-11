@@ -11,19 +11,14 @@ Demo:
 
 Prerequisites
 ----
-OS X quick setup:
-
-    cd pitch-extractor
-    sh setup.sh
-
-Which installs these dependencies:
 
     brew install haskell-stack
     brew install youtube-dl
     brew install ffmpeg
-    brew install python
-    pip install aubio
-    pip install ffmpeg-normalize
+    brew install python3
+
+    pip3 install aubio
+    pip3 install ffmpeg-normalize
 
 Usage
 ----

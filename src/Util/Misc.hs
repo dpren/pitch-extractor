@@ -8,13 +8,14 @@ import Data.Attoparsec.Text  (parseOnly, signed, decimal)
 import TextShow              (showt)
 import Numeric               (showFFloat)
 import Control.Monad         (when, (<=<))
+import Control.Monad.Fail    (MonadFail)
 import Data.Monoid           ((<>))
 import qualified Shelly as S (shelly, which, toTextWarn)
 
-parseInt :: (Integral a, Monad m) => Text -> m a
+parseInt :: (Integral a, Monad m, MonadFail m) => Text -> m a
 parseInt = handle . parseOnly (signed decimal)
 
-handle :: Monad m => Either String a -> m a
+handle :: (Monad m, MonadFail m) => Either String a -> m a
 handle e = case e of
   Left errMsg -> fail errMsg
   Right a -> return a

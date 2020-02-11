@@ -14,6 +14,6 @@ fromId (VideoId vidId) = vidId
 data VideoDirs = VideoDirs {
     out    :: T.FilePath
   , src    :: T.FilePath
-  , srcMp4 :: T.FilePath
+  , srcMkv :: T.FilePath
   , tmp    :: T.FilePath
   } deriving (Show, Eq)

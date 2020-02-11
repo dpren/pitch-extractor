@@ -12,7 +12,7 @@ import Control.Concurrent
 
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
-import Util.Media            (convertToMp4Cmd, normalizeVidsIfPresent)
+import Util.Media            (convertToMkvCmd, normalizeVidsIfPresent)
 import Util.Misc             (echoTxt, toTxt, mkdirDestructive, uniqPathName, getPythonPath)
 import Types
 
@@ -38,7 +38,7 @@ runPitchExtractor = T.sh (do
   tempBase <- T.using (T.mktempdir currentDir tempName)
   let tempDir      =   tempBase </> "temp-wav"
       sourceDir    =   tempBase </> "vid-source-download"
-      sourceMp4Dir =   tempBase </> "vid-source-mp4"
+      sourceMkvDir =   tempBase </> "vid-source-mkv"
 
   baseAlreadyExists <- T.testdir outputBase
   unless baseAlreadyExists (T.mkdir outputBase)
@@ -46,12 +46,12 @@ runPitchExtractor = T.sh (do
   mkdirDestructive outputDir
   mkdirDestructive tempDir
   mkdirDestructive sourceDir
-  mkdirDestructive sourceMp4Dir
+  mkdirDestructive sourceMkvDir
 
   let videoDirs = VideoDirs {
       out    = outputDir
     , src    = sourceDir
-    , srcMp4 = sourceMp4Dir
+    , srcMkv = sourceMkvDir
     , tmp    = tempDir
   }
 
@@ -88,12 +88,12 @@ processVideo vDirs videoId = do
     Just srcPath -> do
       let srcDirFileName = T.filename srcPath
           srcPathOrig    = (src vDirs) </> srcDirFileName
-          srcPathMp4     = (srcMp4 vDirs) </> srcDirFileName `replaceExtension` "mp4"
-      -- Convert source to 44.1k mp4 to use for extraction
-      cmdOutput <- convertToMp4Cmd srcPathOrig srcPathMp4
+          srcPathMkv     = (srcMkv vDirs) </> srcDirFileName `replaceExtension` "mkv"
+      -- Convert source to 44.1k mkv to use for extraction
+      cmdOutput <- convertToMkvCmd srcPathOrig srcPathMkv
       case cmdOutput of
         (T.ExitFailure n, err) -> echoTxt err
-        (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMp4
+        (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMkv
 
 
 -- Download
