@@ -14,7 +14,7 @@ import Prelude hiding             (FilePath)
 import Util.Misc                  (toTxt, exec, parseInt)
 import Types
 
-api_key = "AIzaSyAW8YpOSzVY" <> "liFrN5GoXtyr7BtU-N7998s"
+api_key = ""
 api_url = "https://www.googleapis.com/youtube/v3/search?"
 
 download :: T.FilePath -> VideoId -> IO (T.ExitCode, VideoId)
@@ -27,13 +27,16 @@ download path videoId = do
     downloadCmd path videoId = exec $
       "youtube-dl -o "
       <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
+      -- <> " -f 'bestvideo[height<=720]+bestaudio/best[height<=720]' "
       <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
       <> " --min-sleep-interval 1 "
-      <> " --max-sleep-interval 120 "
+      <> " --max-sleep-interval 140 "
+      <> " --no-playlist "
       <> " --no-warnings "
       <> " --abort-on-error "
       -- <> " --ignore-errors "
       <> " --no-check-certificate"
+      -- <> " --proxy "
       <> " -- " <> (fromId videoId)
 
 -- opts duration query maxPageResults pageToken = defaults
@@ -42,10 +45,10 @@ opts query maxPageResults pageToken = defaults
   & param "key"             .~ [api_key]
   & param "maxResults"      .~ [maxPageResults]
   & param "type"            .~ ["video"]
-  & param "duration"        .~ ["short"]
+  -- & param "duration"        .~ ["short"]
   -- & param "duration"        .~ ["medium"]
-  & param "order"           .~ ["date"]
-  -- & param "order"           .~ ["relevance"]
+  -- & param "order"           .~ ["date"]
+  & param "order"           .~ ["relevance"]
   & param "pageToken"       .~ [pageToken]
   & param "q"               .~ [query]
 

@@ -13,7 +13,7 @@ import Control.Concurrent
 import Yin                   (extractPitchTo)
 import YouTube               (searchYoutube, download)
 import Util.Media            (convertToMkvCmd, normalizeVidsIfPresent)
-import Util.Misc             (echoTxt, toTxt, mkdirDestructive, uniqPathName, getPythonPath)
+import Util.Misc             (echoTxt, toTxt, mkdirDestructive, uniqPathName, getPythonPath, formatDouble)
 import Types
 
 
@@ -71,7 +71,7 @@ ioTasks vDirs searchQuery maxTotalResults = do
   chan <- newChan
   p <- forkJoin $ mapM_ (produce chan (src vDirs)) videoIds >>
                   writeChan chan Nothing
-  c <- forkJoin $ consume chan vDirs
+  c <- forkJoin $ consume chan vDirs videoIds
   takeMVar c >>= echoTxt
 
   -------- Normalize --------
@@ -106,14 +106,15 @@ produce ch sourceDir videoId = do
     (T.ExitSuccess, stdout) -> writeChan ch (Just videoId)
 
 -- Process
-consume :: Chan (Maybe VideoId) -> VideoDirs -> IO Text
-consume ch videoDirs = do
+consume :: Chan (Maybe VideoId) -> VideoDirs -> [VideoId] -> IO Text
+consume ch videoDirs videoIds = do
   maybeStr <- readChan ch
   case maybeStr of
     Just videoId -> do
       echoTxt $ "  processing: " <> (fromId videoId)
+      echoTxt $ "  total prog: " <> (getProgress videoId videoIds)
       processVideo videoDirs videoId
-      consume ch videoDirs
+      consume ch videoDirs videoIds
     Nothing -> return "Done."
 
 
@@ -122,3 +123,10 @@ forkJoin task = do
   mv <- newEmptyMVar
   forkIO (task >>= putMVar mv)
   return mv
+
+getProgress :: VideoId -> [VideoId] -> Text
+getProgress videoId videoIds = formatDouble 0 decm
+  where
+    total = fromIntegral (length videoIds)
+    maybeIndex = fmap (fromIntegral . (+1)) (elemIndex videoId videoIds)
+    decm = (maybe 0 (/total) maybeIndex ) * 100

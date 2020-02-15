@@ -1,12 +1,12 @@
 const noMidiMsgEl = "<h4 id='midi-err'>🎹 No MIDI device connected.</h4>";
-const insertNoMidiMsgEl = () => document.body.insertAdjacentHTML('beforeend', noMidiMsgEl);
+const insertNoMidiMsgEl = () => document.body.insertAdjacentHTML("afterBegin", noMidiMsgEl);
 
 const checkMidiRecursively = () =>
   setTimeout(() => {
     navigator.requestMIDIAccess()
       .then(m => {
         m.inputs.size > 0
-          ? document.querySelector('#midi-err').remove()
+          ? document.querySelector("#midi-err").remove()
           : checkMidiRecursively()
       }, console.error);
   }, 500);
@@ -17,6 +17,7 @@ const initialMidiCheck = () =>
       // midi is not connected
       if (m.inputs.size <= 0) {
         insertNoMidiMsgEl();
+        console.log('insertNoMidiMsgEl')
         checkMidiRecursively();
       }
     }, console.error);
@@ -28,11 +29,60 @@ if (!navigator.requestMIDIAccess) {
   initialMidiCheck();
 }
 
+
+window.onMIDIMessage = ({ data }) => {
+  noteLog.textContent = data[1];
+  console.log("onMIDIMessage, no vids loaded");
+}
+let _onMidiMsg = (ev) => window.onMIDIMessage(ev);
+const midiSelect = document.querySelector("#midiSelect");
+let midiRefs = [];
+
+midiSelect.addEventListener("change", (ev) => {
+  const selection = ev.target.value;
+
+  navigator.requestMIDIAccess()
+    .then((midi) => {
+      let inputs = midi.inputs.values();
+
+      midiRefs.forEach(inp => {
+        inp.value.removeEventListener("midimessage", _onMidiMsg);
+      });
+      midiRefs = [];
+
+      for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+        if (input.value.name === selection) {
+          console.log('> selected:', input.value.name);
+          input.value.addEventListener("midimessage", _onMidiMsg);
+        }
+        midiRefs.push(input);
+      }
+    }, console.error);
+});
+
+const updateMidiSelectOpts = (midi) => {
+  const inpsArr = [...midi.inputs.values()];
+
+  midiSelect.innerHTML = inpsArr.length > 0
+    ? inpsArr.map(inp => `<option>${inp.name}</option>`).join("")
+    : "<option disabled selected>-- No MIDI Inputs --</option>"
+};
+
+navigator.requestMIDIAccess()
+  .then((midi) => {
+    updateMidiSelectOpts(midi);
+    midi.onstatechange = (ev) => {
+      updateMidiSelectOpts(ev.target);
+    }
+  }, console.error);
+
+
+
 Object.assign(this, R);
 const containerEl = document.querySelector('#container');
 const dropzoneEl = document.querySelector('#dropzone');
-const dropzoneContainerEl = document.querySelector('#dropzone-container');
 const spinnerEl = document.querySelector('#spinner');
+const noteLog = document.querySelector('#noteLog');
 let audioCtx;
 
 let videoEls = [];
@@ -44,8 +94,7 @@ const rejectDotFiles = reject(pathEq(['name', '0'], '.'));
 const dropExtension = f => f.split('.')[0];
 const midiFromFilename = f => f.split('__')[0];
 
-
-dropzoneEl.onchange = ev => {
+dropzoneEl.addEventListener('change', ev => {
   spinnerEl.style.display = 'inline-block';
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -57,7 +106,7 @@ dropzoneEl.onchange = ev => {
   videoEls = files.map(file =>
     createVideoEl(file.name, URL.createObjectURL(file))
   );
-};
+});
 
 const createVideoEl = (filename, src) => {
   const selectorId = 'v-' + dropExtension(filename);
@@ -69,6 +118,8 @@ const createVideoEl = (filename, src) => {
       class=""
     ></video>`
   );
+  // type="video/mp4; codecs='mjpeg'"
+  // preload="auto"
   let vidEl = document.getElementById(selectorId);
   vidEl.midiNote = midiFromFilename(filename);
   vidEl.addEventListener('canplay', onCanPlay);
@@ -110,8 +161,10 @@ const videoElsToIndexedGroups = videoEls => {
 
 
 const onAllVideosLoaded = (videoEls) => {
-  spinnerEl.style.display = 'none';
-  dropzoneContainerEl.style.display = 'none';
+  // spinnerEl.style.display = 'none';
+  // dropzoneEl.style.display = 'none';
+  spinnerEl.remove();
+  dropzoneEl.remove();
 
   let videoMidiGroups = videoElsToIndexedGroups(videoEls);
   window.videoMidiGroups = videoMidiGroups;
@@ -150,40 +203,42 @@ const onAllVideosLoaded = (videoEls) => {
     videoEl.style.display = "inline";
     // videoEl.style.opacity = "1";
     videoEl.play();
-    setTimeout(() => {
-      videoEl.style.display = "none";
-    }, 1800);
+    // setTimeout(() => {
+    //   videoEl.style.display = "none";
+    // }, 1800);
   }
 
   const stopVideo = (midiNote) => {
     const videoEl = getRoundRobin(midiNote);
     if (!videoEl) return;
     videoEl.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
-    videoEl.className = "fadeOut";
-    setTimeout(() => {
-      videoEl.className = "";
-      videoEl.style.display = "none";
-      // videoEl.style.opacity = "0";
-      // videoEl.style.display = "none";
-      // videoEl.pause();
-      // videoEl.stopVideo
-      // setTimeout(() => {
-      // }, 200);
-    }, 500);
+    // videoEl.className = "fadeOut";
+    // setTimeout(() => {
+    // videoEl.className = "";
+    videoEl.style.display = "none";
+    // videoEl.style.opacity = "0";
+    // videoEl.style.display = "none";
+    // videoEl.pause();
+    // videoEl.stopVideo
+    // setTimeout(() => {
+    // }, 200);
+    // }, 500);
   }
 
-  navigator.requestMIDIAccess()
-    .then(success, console.error);
+  // navigator.requestMIDIAccess()
+  //   .then(success, console.error);
 
-  function success(midi) {
-    let inputs = midi.inputs.values();
+  // function success(midi) {
+  //   let inputs = midi.inputs.values();
 
-    for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
-      input.value.onmidimessage = onMIDIMessage;
-    }
-  }
+  //   for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+  //     if (input.value.name === "IAC Driver Bus 1") {
+  //       input.value.onmidimessage = onMIDIMessage;
+  //     }
+  //   }
+  // }
 
-  function onMIDIMessage({ data }) {
+  window.onMIDIMessage = ({ data }) => {
     // const channel = data[0] & 0xf;
     const command = data[0] >> 4;
     const midiNote = data[1];
@@ -191,6 +246,7 @@ const onAllVideosLoaded = (videoEls) => {
     // console.log(command, midiNote, velocity)
 
     if (command === 9 && velocity > 0) {
+      noteLog.textContent = midiNote;
       playVideo(midiNote, velocity);
     }
 

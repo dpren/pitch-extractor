@@ -4,6 +4,7 @@
 *.wav
 *.webm
 .DS_Store
+.vscode/
 .stack-work/
 .temp*/
 vid-output/

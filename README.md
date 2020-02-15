@@ -9,16 +9,20 @@ Demo:
 
 [![Alt text](https://img.youtube.com/vi/kZSk0LsozFY/2.jpg)](https://www.youtube.com/watch?v=kZSk0LsozFY)
 
-Prerequisites
+Dependencies
 ----
 
     brew install haskell-stack
-    brew install youtube-dl
     brew install ffmpeg
+    brew install youtube-dl
     brew install python3
 
-    pip3 install aubio
-    pip3 install ffmpeg-normalize
+    pip3 install aubio==0.4.9 
+    pip3 install ffmpeg-normalize==1.15.6
+
+Make sure these are all on your $PATH
+
+Windows users, try [scoop](https://github.com/lukesampson/scoop#scoop)
 
 Usage
 ----

@@ -36,11 +36,11 @@ library
                      , turtle
                      , shelly
                      , foldl
-  pkgconfig-depends:   libavutil
-                     , libavformat
-                     , libavcodec
-                     , libavdevice
-                     , libswscale
+  -- pkgconfig-depends:   libavutil
+  --                    , libavformat
+  --                    , libavcodec
+  --                    , libavdevice
+  --                    , libswscale
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
                      , GeneralizedNewtypeDeriving
