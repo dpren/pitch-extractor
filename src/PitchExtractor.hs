@@ -64,7 +64,7 @@ ioTasks :: VideoDirs -> Text -> Text -> IO ()
 ioTasks vDirs searchQuery maxTotalResults = do
   -------- Get video ids --------
   echoTxt "looking for vids..."
-  videoIds <- searchYoutube searchQuery maxTotalResults
+  videoIds <- nub <$> searchYoutube searchQuery maxTotalResults
   mapM_ print videoIds
 
   -------- Concurrently download/process --------
