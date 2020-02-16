@@ -30,7 +30,7 @@ download path videoId = do
       -- <> " -f 'bestvideo[height<=720]+bestaudio/best[height<=720]' "
       <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
       <> " --min-sleep-interval 1 "
-      <> " --max-sleep-interval 140 "
+      <> " --max-sleep-interval 150 "
       <> " --no-playlist "
       <> " --no-warnings "
       <> " --abort-on-error "
@@ -61,6 +61,13 @@ videoIdsFromResponse r = r ^.. responseBody
   . key "videoId"
   . _String
 
+vidsLiveContFromResponse r = r ^.. responseBody
+  . key "items"
+  . values
+  . key "snippet"
+  . key "liveBroadcastContent"
+  . _String
+
 nextPageTokenFromResponse r = r ^.. responseBody
   . key "nextPageToken"
   ^? ix 0
@@ -84,7 +91,10 @@ getPaginatedVideoIds query maxTotalResults prevVideoIds pageToken maxPageResults
   resp <- getWithOpts (opts query maxPageResults pageToken)
   let
     remainingCount = maxTotalResults - (length prevVideoIds)
-    newVideoIds    = take remainingCount (videoIdsFromResponse resp)
+    liveCont       = vidsLiveContFromResponse resp
+    vidIds         = videoIdsFromResponse resp
+    vidIdsNoLive   = fst <$> filter ((/= "live") . snd) (zip vidIds liveCont)
+    newVideoIds    = take remainingCount vidIdsNoLive
     totalVideoIds  = prevVideoIds ++ (take remainingCount newVideoIds)
     nextPageToken  = nextPageTokenFromResponse resp
 
