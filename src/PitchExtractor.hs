@@ -2,6 +2,7 @@ module PitchExtractor where
 
 import Data.List
 import Data.Text as Text     (pack, unpack, replace, head, Text)
+import TextShow              (showt)
 import qualified Control.Foldl as F
 import qualified Turtle as T
 import Prelude hiding        (FilePath, head)
@@ -112,7 +113,7 @@ consume ch videoDirs videoIds = do
   case maybeStr of
     Just videoId -> do
       echoTxt $ "  processing: " <> (fromId videoId)
-      echoTxt $ "  total prog: " <> (getProgress videoId videoIds)
+      echoTxt $ "  " <> (getProgress videoId videoIds)
       processVideo videoDirs videoId
       consume ch videoDirs videoIds
     Nothing -> return "Done."
@@ -124,9 +125,11 @@ forkJoin task = do
   forkIO (task >>= putMVar mv)
   return mv
 
+
 getProgress :: VideoId -> [VideoId] -> Text
-getProgress videoId videoIds = formatDouble 0 decm
+getProgress videoId videoIds = showt percentage <> "%"
   where
     total = fromIntegral (length videoIds)
     maybeIndex = fmap (fromIntegral . (+1)) (elemIndex videoId videoIds)
-    decm = (maybe 0 (/total) maybeIndex ) * 100
+    decm :: Double = (maybe 0 (/total) maybeIndex ) * 100
+    percentage :: Int = round decm
