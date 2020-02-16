@@ -3,7 +3,7 @@ module PitchLocation where
 import Data.List
 import Data.Function (on)
 
-minDuration = 0.8
+minDuration = 0.6
 
 pitchStartTime :: [Double] -> [[Double]] -> Maybe Double
 pitchStartTime segment bins = computeTime <$> (segmentPrefix segment bins)
@@ -22,7 +22,7 @@ isAboveMinDuration pitchSeg = (computeTime pitchSeg) > minDuration
 
 -- | Filters a reasonable note range
 dropMIDIOutliers :: [[Double]] -> [[Double]]
-dropMIDIOutliers = fmap (takeWhile (\x -> x > 19 && x < 79)) -- G1 - G6
+dropMIDIOutliers = fmap (takeWhile (\x -> x >= 24 && x <= 84)) -- G1 - G6
 
 -- | totalNumOfSamples / samplesPerSecond = total seconds
 computeTime :: [Double] -> Double
