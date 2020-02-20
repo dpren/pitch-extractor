@@ -16,9 +16,8 @@ parseOutput x = T.match (T.decimal `T.sepBy` ",") x !! 0
 
 
 getPitches_yin :: T.FilePath -> T.FilePath -> IO (Either T.Text [[Double]])
-getPitches_yin filePath tempPath = do
-  let monoFilePath = tempPath `replaceExtension` ".wav"
-      monoAudioCmd = createMonoAudio filePath monoFilePath
+getPitches_yin filePath monoFilePath = do
+  let monoAudioCmd = createMonoAudio filePath monoFilePath
       yinCmd       = ["yin_pitch.py", (toTxt monoFilePath)]
 
   pythonPath <- getPythonPath
@@ -40,7 +39,8 @@ getPitches_yin filePath tempPath = do
 
 extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> IO ()
 extractPitchTo outputDir tempDir filePath = do
-  bins <- getPitches_yin filePath tempPath
+  let monoFilePath = tempPath `replaceExtension` ".wav"
+  bins <- getPitches_yin filePath monoFilePath
   case bins of
     Left yinErr -> errMsg yinErr
     Right bins -> do
@@ -77,6 +77,8 @@ extractPitchTo outputDir tempDir filePath = do
         )
         []
         pitchSegments
+      
+      T.rm monoFilePath
 
   where
     fileNamePath = filename filePath

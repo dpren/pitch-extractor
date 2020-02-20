@@ -92,6 +92,7 @@ processVideo vDirs videoId = do
           srcPathMkv     = (srcMkv vDirs) </> srcDirFileName `replaceExtension` "mkv"
       -- Convert source to 44.1k mkv to use for extraction
       cmdOutput <- convertToMkvCmd srcPathOrig srcPathMkv
+      T.rm srcPathOrig
       case cmdOutput of
         (T.ExitFailure n, err) -> echoTxt err
         (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMkv
