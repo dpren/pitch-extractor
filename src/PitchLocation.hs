@@ -3,7 +3,7 @@ module PitchLocation where
 import Data.List
 import Data.Function (on)
 
-minDuration = 0.6
+minDuration = 0.5
 
 pitchStartTime :: [Double] -> [[Double]] -> Maybe Double
 pitchStartTime segment bins = computeTime <$> (segmentPrefix segment bins)

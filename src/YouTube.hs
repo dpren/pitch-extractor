@@ -30,7 +30,7 @@ download path videoId = do
       -- <> " -f 'bestvideo[height<=720]+bestaudio/best[height<=720]' "
       <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
       <> " --min-sleep-interval 1 "
-      <> " --max-sleep-interval 150 "
+      <> " --max-sleep-interval 200 "
       <> " --no-playlist "
       <> " --no-warnings "
       <> " --abort-on-error "
