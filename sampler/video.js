@@ -123,7 +123,7 @@ dropzoneEl.addEventListener('change', ev => {
 });
 
 const createVideoEl = (filename, file) => {
-  file.type = "video/webm;codecs=vp9,opus"
+  // file.type = "video/webm;codecs=vp9,opus"
   // file.type = "video/x-matroska; codecs='h264,pcm'"
   console.log('file:', file)
   const src = URL.createObjectURL(file);
@@ -133,10 +133,11 @@ const createVideoEl = (filename, file) => {
       id="${selectorId}"
       src="${src}"
       style="display: none;"
-      type="video/webm;codecs=vp9,opus"
       preload
+      muted="true"
     ></video>`
   );
+  // type="video/webm;codecs=vp9,opus"
   // class=""
   // type="video/mp4; codecs='mjpeg'"
   let vidEl = document.getElementById(selectorId);
@@ -147,7 +148,7 @@ const createVideoEl = (filename, file) => {
 
   vidEl.midiNote = midiFromFilename(filename);
   vidEl.addEventListener('canplay', onCanPlay);
-  attachGainNode(vidEl);
+  // attachGainNode(vidEl);
   return vidEl;
 };
 
@@ -220,12 +221,12 @@ const onAllVideosLoaded = (videoEls) => {
     const videoEl = setGetRoundRobin(midiNote);
     // console.log(midiNote, velocity, scaleVel(velocity))
     if (!videoEl) return;
-    videoEl.currentTime = 0;
-    videoEl.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-    videoEl.gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    videoEl.gainNode.gain.exponentialRampToValueAtTime(scaleVel(velocity), audioCtx.currentTime + 0.03);
+    // videoEl.currentTime = 0;
+    // videoEl.gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+    // videoEl.gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    // videoEl.gainNode.gain.exponentialRampToValueAtTime(scaleVel(velocity), audioCtx.currentTime + 0.03);
     // videoEl.className = "";
-    // videoEl.style.display = "inline";
+    videoEl.style.display = "inline";
     // videoEl.style.opacity = "1";
     videoEl.play();
     // setTimeout(() => {
@@ -236,13 +237,12 @@ const onAllVideosLoaded = (videoEls) => {
   const stopVideo = (midiNote) => {
     const videoEl = getRoundRobin(midiNote);
     if (!videoEl) return;
-    videoEl.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+    // videoEl.gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
     // videoEl.className = "fadeOut";
     // setTimeout(() => {
     // videoEl.className = "";
-    // videoEl.style.display = "none";
+    videoEl.style.display = "none";
     // videoEl.style.opacity = "0";
-    // videoEl.style.display = "none";
     // videoEl.pause();
     // videoEl.stopVideo
     // setTimeout(() => {

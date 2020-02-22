@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      * {
+        font-family: sans-serif;
+      }
+      html {
+        background: #000;
+        color: #aaa;
+      }
+      body {
+        margin: 0px;
+        padding: 0px;
+        text-align: center;
+      }
+      .option {
+        max-width: 300px;
+        font-size: 22px;
+        border: 1px solid purple;
+        border-radius: 4px;
+        padding: 14px 0px;
+        margin: 12px;
+        display: block;
+        background: #111;
+        color: #fff;
+        cursor: pointer;
+      }
+      .option:hover {
+        background: #1a1a1a;
+      }
+      .option.selected {
+        background: #1c0033;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.26.1/ramda.min.js"></script>
+    <!-- <script src="../../ramda.min.js"></script> -->
+  </head>
+  <body>
+    <div class="option">App</div>
+    <div class="option">App</div>
+    <div class="option">App</div>
+
+    <script src="../controller.js"></script>
+  </body>
+</html>

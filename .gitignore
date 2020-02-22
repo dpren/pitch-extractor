@@ -3,6 +3,7 @@
 *.raw
 *.wav
 *.webm
+node_modules
 .DS_Store
 .vscode/
 .stack-work/

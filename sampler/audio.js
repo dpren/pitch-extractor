@@ -99,6 +99,7 @@ function sleep(ms) {
 }
 
 dropzoneEl.addEventListener('change', ev => {
+  console.log('change:', ev)
   spinnerEl.style.display = 'inline-block';
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -271,8 +272,8 @@ const onAllVideosLoaded = (videoEls) => {
     // console.log(command, midiNote, velocity)
 
     if (command === 9 && velocity > 0) {
-      noteLog.textContent = midiNote;
       playVideo(midiNote, velocity);
+      noteLog.textContent = midiNote;
     }
 
     if (command === 8) { //|| velocity <= 0) {

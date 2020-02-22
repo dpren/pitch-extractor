@@ -1,0 +1,276 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      * {
+        font-family: sans-serif;
+      }
+      body {
+        margin: 0px;
+        padding: 0px;
+        background: #000;
+        color: #aaa;
+        text-align: center;
+      }
+
+      video {
+        max-width: 400px;
+        max-height: 224px;
+        margin-right: -1px;
+        margin-left: -1px;
+      }
+      .fadeOut {
+        animation: fadeout 0.5s ease 0s forwards;
+        opacity: 0;
+      }
+      @keyframes fadeout {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+      #container {
+        margin: 0px;
+        padding: 0px;
+      }
+      #dropzone-container {
+        overflow: visible;
+      }
+
+      input[type="file" i] {
+        -webkit-appearance: none;
+        color: transparent;
+      }
+      #dropzone::-webkit-file-upload-button {
+        visibility: hidden;
+      }
+      #dropzone {
+        width: calc(100% - 80px);
+        height: calc(80% - 80px);
+        max-width: 800px;
+        max-height: 500px;
+        margin-top: 40px;
+        border: 3px solid #aaa8;
+        border-radius: 3px;
+      }
+      #dropzone::before {
+        content: 'Drop video folder here';
+        word-wrap: break-word;
+        width: 100%;
+        height: 100%;
+        color: #666;
+        display: inline-block;
+        background: #aaa4;
+        padding-top: 36px;
+        text-align: center;
+        outline: none;
+        white-space: nowrap;
+        cursor: pointer;
+        text-shadow: 0px 0px 1px #000;
+        font-weight: 700;
+        font-size: 20px;
+      }
+      #dropzone:hover {
+        border-color: #8ad;
+      }
+      #dropzone:active::before {
+        background: #ccd3;
+        /* border-radius: 5px; */
+      }
+
+      #spinner {
+        position: absolute;
+        left: calc(50% - 25px);
+        /* top: 33%; */
+        top: 400px;
+        height: 50px;
+        width: 50px;
+        animation: rotation .5s infinite linear;
+        border: 4px solid rgba(20, 200, 250, 0.4);
+        border-top: 4px solid rgb(40, 210, 255);
+        border-radius: 100%;
+      }
+      #midi-err {
+        margin: 25px;
+      }
+      @keyframes rotation {
+        from {transform: rotate(0deg);}
+        to {transform: rotate(359deg);}
+      }
+      #noteLog {
+        position: fixed;
+        bottom: 3px;
+        right: 5px;
+        color: #555;
+        font-size: 14px;
+        font-family: monospace;
+      }
+      #midiSelect {
+        min-width: 100px;
+        color: #ddd;
+        background: transparent;
+        border-color: transparent;
+        outline: none;
+        margin-left: -6px;
+        vertical-align: middle;
+        transition: opacity 50ms ease;
+        opacity: 0;
+        opacity: 0.5;
+      }
+      .midiSelectContainer::before {
+        content: "🎹";
+        font-size: 14px;
+      }
+      .midiSelectContainer {
+        user-select: none;
+        padding: 6px;
+        position: fixed;
+        bottom: 0px;
+        left: 3px;
+        opacity: 0.5;
+        transition: opacity 70ms ease;
+      }
+      .midiSelectContainer:hover,
+      .midiSelectContainer:hover #midiSelect,
+      #midiSelect:focus {
+        opacity: 1;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.26.1/ramda.min.js"></script>
+    <!-- <script src="../../ramda.min.js"></script> -->
+  </head>
+  <body>
+    <span class="midiSelectContainer">
+      <select id="midiSelect">
+        <option value="">No MIDI Inputs</option>
+      </select>
+    </span>
+    <!-- <div id="spinner" style="display: none;"></div> -->
+    <!-- <input type="file" id="dropzone" webkitdirectory directory multiple/> -->
+    <div id="container">
+      <!-- <video id="v-" src="" style="display: none;" preload></video> -->
+      <video id="v-48__0__dS9cvu13jKs" src="48__0__dS9cvu13jKs.mkv" style="display: none;" preload></video>
+      <video id="v-48__0__fTy-6Wt27ks" src="48__0__fTy-6Wt27ks.mkv" style="display: none;" preload></video>
+      <video id="v-48__0__hqr46XZhtRg" src="48__0__hqr46XZhtRg.mkv" style="display: none;" preload></video>
+      <video id="v-50__0__fTy-6Wt27ks" src="50__0__fTy-6Wt27ks.mkv" style="display: none;" preload></video>
+      <video id="v-51__0__sExe1soAFLI" src="51__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-52__0__fTy-6Wt27ks" src="52__0__fTy-6Wt27ks.mkv" style="display: none;" preload></video>
+      <video id="v-52__0__hqr46XZhtRg" src="52__0__hqr46XZhtRg.mkv" style="display: none;" preload></video>
+      <video id="v-52__0__kCka94jeGTk" src="52__0__kCka94jeGTk.mkv" style="display: none;" preload></video>
+      <video id="v-53__0__a5nUpraxJr8" src="53__0__a5nUpraxJr8.mkv" style="display: none;" preload></video>
+      <video id="v-53__0__ccS_qGoxV6A" src="53__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-53__0__r9hTlhsNY5g" src="53__0__r9hTlhsNY5g.mkv" style="display: none;" preload></video>
+      <video id="v-53__0__sExe1soAFLI" src="53__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-53__0__UZJdd2ZEyd0" src="53__0__UZJdd2ZEyd0.mkv" style="display: none;" preload></video>
+      <video id="v-54__0__hqr46XZhtRg" src="54__0__hqr46XZhtRg.mkv" style="display: none;" preload></video>
+      <video id="v-54__0__LPSZoyU1EQE" src="54__0__LPSZoyU1EQE.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__3NxAsRNtvoc" src="55__0__3NxAsRNtvoc.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__BK9OOhnso4M" src="55__0__BK9OOhnso4M.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__C_p1eOVO-Q4" src="55__0__C_p1eOVO-Q4.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__ccS_qGoxV6A" src="55__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__eubh7DdA4Ak" src="55__0__eubh7DdA4Ak.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__f4QgLfTR1Bg" src="55__0__f4QgLfTR1Bg.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__LPSZoyU1EQE" src="55__0__LPSZoyU1EQE.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__o872WzNiF3U" src="55__0__o872WzNiF3U.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__oiv_TXQTYOg" src="55__0__oiv_TXQTYOg.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__pl0gIkpOFUo" src="55__0__pl0gIkpOFUo.mkv" style="display: none;" preload></video>
+      <video id="v-55__0__VJtDpJT2gz8" src="55__0__VJtDpJT2gz8.mkv" style="display: none;" preload></video>
+      <video id="v-56__0__AAp88YhKHGw" src="56__0__AAp88YhKHGw.mkv" style="display: none;" preload></video>
+      <video id="v-56__0__dHriGHv43ms" src="56__0__dHriGHv43ms.mkv" style="display: none;" preload></video>
+      <video id="v-56__0__eubh7DdA4Ak" src="56__0__eubh7DdA4Ak.mkv" style="display: none;" preload></video>
+      <video id="v-56__0__LPSZoyU1EQE" src="56__0__LPSZoyU1EQE.mkv" style="display: none;" preload></video>
+      <video id="v-57__0__ccS_qGoxV6A" src="57__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-57__0__hqr46XZhtRg" src="57__0__hqr46XZhtRg.mkv" style="display: none;" preload></video>
+      <video id="v-57__0__kCka94jeGTk" src="57__0__kCka94jeGTk.mkv" style="display: none;" preload></video>
+      <video id="v-58__0__bSDPkUUaiwY" src="58__0__bSDPkUUaiwY.mkv" style="display: none;" preload></video>
+      <video id="v-58__0__hrGiRaNN9Es" src="58__0__hrGiRaNN9Es.mkv" style="display: none;" preload></video>
+      <video id="v-59__0__Q1Si1DOAcHA" src="59__0__Q1Si1DOAcHA.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__C_p1eOVO-Q4" src="60__0__C_p1eOVO-Q4.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__eubh7DdA4Ak" src="60__0__eubh7DdA4Ak.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__f4QgLfTR1Bg" src="60__0__f4QgLfTR1Bg.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__o872WzNiF3U" src="60__0__o872WzNiF3U.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__pl0gIkpOFUo" src="60__0__pl0gIkpOFUo.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__sExe1soAFLI" src="60__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-60__0__VJtDpJT2gz8" src="60__0__VJtDpJT2gz8.mkv" style="display: none;" preload></video>
+      <video id="v-61__0__ccS_qGoxV6A" src="61__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-61__0__tpXrGzfE5dM" src="61__0__tpXrGzfE5dM.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__C_p1eOVO-Q4" src="62__0__C_p1eOVO-Q4.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__ccS_qGoxV6A" src="62__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__e2p8UPJOBdI" src="62__0__e2p8UPJOBdI.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__f4QgLfTR1Bg" src="62__0__f4QgLfTR1Bg.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__hrGiRaNN9Es" src="62__0__hrGiRaNN9Es.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__n6MHoxZc8zQ" src="62__0__n6MHoxZc8zQ.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__o872WzNiF3U" src="62__0__o872WzNiF3U.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__tL7CSJXNwCg" src="62__0__tL7CSJXNwCg.mkv" style="display: none;" preload></video>
+      <video id="v-62__0__ve3_CyTcdyg" src="62__0__ve3_CyTcdyg.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__3C0FeuUcEsg" src="63__0__3C0FeuUcEsg.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__ccS_qGoxV6A" src="63__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__DsY-ywdOfDw" src="63__0__DsY-ywdOfDw.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__LPSZoyU1EQE" src="63__0__LPSZoyU1EQE.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__Pk3Sj9bnFrY" src="63__0__Pk3Sj9bnFrY.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__RsspYwyHjA4" src="63__0__RsspYwyHjA4.mkv" style="display: none;" preload></video>
+      <video id="v-63__0__VjPsATEpSFA" src="63__0__VjPsATEpSFA.mkv" style="display: none;" preload></video>
+      <video id="v-64__0__ccS_qGoxV6A" src="64__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-64__0__DsY-ywdOfDw" src="64__0__DsY-ywdOfDw.mkv" style="display: none;" preload></video>
+      <video id="v-64__0__dxCrIb6kuXU" src="64__0__dxCrIb6kuXU.mkv" style="display: none;" preload></video>
+      <video id="v-64__0__LPSZoyU1EQE" src="64__0__LPSZoyU1EQE.mkv" style="display: none;" preload></video>
+      <video id="v-64__0__Q1Si1DOAcHA" src="64__0__Q1Si1DOAcHA.mkv" style="display: none;" preload></video>
+      <video id="v-64__0__VjPsATEpSFA" src="64__0__VjPsATEpSFA.mkv" style="display: none;" preload></video>
+      <video id="v-65__0__1R-SmhEcZAc" src="65__0__1R-SmhEcZAc.mkv" style="display: none;" preload></video>
+      <video id="v-65__0__7h1EpGyE35g" src="65__0__7h1EpGyE35g.mkv" style="display: none;" preload></video>
+      <video id="v-65__0__ccS_qGoxV6A" src="65__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-65__0__ntGiqQWuZzU" src="65__0__ntGiqQWuZzU.mkv" style="display: none;" preload></video>
+      <video id="v-65__0__sExe1soAFLI" src="65__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-66__0__ccS_qGoxV6A" src="66__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-66__0__h2xe4DBm-UU" src="66__0__h2xe4DBm-UU.mkv" style="display: none;" preload></video>
+      <video id="v-66__0__zt-v8Os0o4A" src="66__0__zt-v8Os0o4A.mkv" style="display: none;" preload></video>
+      <video id="v-67__0__3NxAsRNtvoc" src="67__0__3NxAsRNtvoc.mkv" style="display: none;" preload></video>
+      <video id="v-67__0__AAp88YhKHGw" src="67__0__AAp88YhKHGw.mkv" style="display: none;" preload></video>
+      <video id="v-67__0__ccS_qGoxV6A" src="67__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-67__0__R6PQeJOqfGk" src="67__0__R6PQeJOqfGk.mkv" style="display: none;" preload></video>
+      <video id="v-68__0__hqr46XZhtRg" src="68__0__hqr46XZhtRg.mkv" style="display: none;" preload></video>
+      <video id="v-68__0__i6nr7GU6v1o" src="68__0__i6nr7GU6v1o.mkv" style="display: none;" preload></video>
+      <video id="v-69__0__6YdWlwE-onU" src="69__0__6YdWlwE-onU.mkv" style="display: none;" preload></video>
+      <video id="v-69__0__ccS_qGoxV6A" src="69__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-69__0__Q1Si1DOAcHA" src="69__0__Q1Si1DOAcHA.mkv" style="display: none;" preload></video>
+      <video id="v-69__0__R6PQeJOqfGk" src="69__0__R6PQeJOqfGk.mkv" style="display: none;" preload></video>
+      <video id="v-70__0__uH4nwb3vogU" src="70__0__uH4nwb3vogU.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__0m-SOFYUdik" src="71__0__0m-SOFYUdik.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__7j8QPDPhoNo" src="71__0__7j8QPDPhoNo.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__8QhSd4wKbdw" src="71__0__8QhSd4wKbdw.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__a5nUpraxJr8" src="71__0__a5nUpraxJr8.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__AmXO_PTyHWk" src="71__0__AmXO_PTyHWk.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__ccS_qGoxV6A" src="71__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__Cup98pb2wr4" src="71__0__Cup98pb2wr4.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__eYHYFo2mmzk" src="71__0__eYHYFo2mmzk.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__iR5GgoPRlUU" src="71__0__iR5GgoPRlUU.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__lAMgvKfehpQ" src="71__0__lAMgvKfehpQ.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__n6IghwuHUaI" src="71__0__n6IghwuHUaI.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__QL_UepVU_Zc" src="71__0__QL_UepVU_Zc.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__r9hTlhsNY5g" src="71__0__r9hTlhsNY5g.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__sExe1soAFLI" src="71__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-71__0__vj8poDE_g5g" src="71__0__vj8poDE_g5g.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__6YdWlwE-onU" src="72__0__6YdWlwE-onU.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__32zGeLKUQDA" src="72__0__32zGeLKUQDA.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__c5mKajntRuE" src="72__0__c5mKajntRuE.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__ccS_qGoxV6A" src="72__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__sExe1soAFLI" src="72__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__tvxBjtnCxHc" src="72__0__tvxBjtnCxHc.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__vj8poDE_g5g" src="72__0__vj8poDE_g5g.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__WyvbQ26nRns" src="72__0__WyvbQ26nRns.mkv" style="display: none;" preload></video>
+      <video id="v-72__0__znY_8YI8jns" src="72__0__znY_8YI8jns.mkv" style="display: none;" preload></video>
+      <video id="v-73__0__ccS_qGoxV6A" src="73__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-73__0__pe0RxB3X6To" src="73__0__pe0RxB3X6To.mkv" style="display: none;" preload></video>
+      <video id="v-74__0__AAp88YhKHGw" src="74__0__AAp88YhKHGw.mkv" style="display: none;" preload></video>
+      <video id="v-74__0__ccS_qGoxV6A" src="74__0__ccS_qGoxV6A.mkv" style="display: none;" preload></video>
+      <video id="v-74__0__pbLCqIjT3NQ" src="74__0__pbLCqIjT3NQ.mkv" style="display: none;" preload></video>
+      <video id="v-74__0__sExe1soAFLI" src="74__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-75__0__pbLCqIjT3NQ" src="75__0__pbLCqIjT3NQ.mkv" style="display: none;" preload></video>
+      <video id="v-75__0__sExe1soAFLI" src="75__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-76__0__sExe1soAFLI" src="76__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+      <video id="v-77__0__pbLCqIjT3NQ" src="77__0__pbLCqIjT3NQ.mkv" style="display: none;" preload></video>
+      <video id="v-78__0__sExe1soAFLI" src="78__0__sExe1soAFLI.mkv" style="display: none;" preload></video>
+    </div>
+    <samp id="noteLog"></samp>
+    <script src="audio.js"></script>
+  </body>
+</html>
