@@ -7,7 +7,8 @@ them to a directory, indexed by note - which can then be loaded into the sampler
 
 Demo:
 
-[![Alt text](https://img.youtube.com/vi/kZSk0LsozFY/2.jpg)](https://www.youtube.com/watch?v=kZSk0LsozFY)
+[![YouTubaphone](https://i9.ytimg.com/vi/Ag04gHBzJho/mq2.jpg?sqp=CMXVpfMF&rs=AOn4CLDQqQQFt-gJUjqeE-FwDDQoOANlMw)](https://www.youtube.com/watch?v=Ag04gHBzJho)
+[![demo](https://img.youtube.com/vi/kZSk0LsozFY/2.jpg)](https://www.youtube.com/watch?v=kZSk0LsozFY)
 
 Dependencies
 ----
