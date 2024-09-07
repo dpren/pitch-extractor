@@ -28,18 +28,18 @@ runPitchExtractor = T.sh (do
   echoTxt "files system setup..."
   let searchQuery     = args !! 0
       maxTotalResults = args !! 1
-      searchQueryName = T.fromText (replace " " "_" searchQuery)
-      outputBase      = currentDir </> "vid-output"
+      searchQueryName = unpack (replace " " "_" searchQuery)
+      outputBase      = currentDir T.</> "vid-output"
 
-  outputDir <- uniqPathName (outputBase </> searchQueryName)
+  outputDir <- uniqPathName (outputBase T.</> searchQueryName)
   let outputName   = T.basename outputDir
       tempPrefix   = ".temp-" :: Text
       tempName     = tempPrefix <> (toTxt outputName)
 
   tempBase <- T.using (T.mktempdir currentDir tempName)
-  let tempDir      =   tempBase </> "temp-wav"
-      sourceDir    =   tempBase </> "vid-source-download"
-      sourceMkvDir =   tempBase </> "vid-source-mkv"
+  let tempDir      =   tempBase T.</> "temp-wav"
+      sourceDir    =   tempBase T.</> "vid-source-download"
+      sourceMkvDir =   tempBase T.</> "vid-source-mkv"
 
   baseAlreadyExists <- T.testdir outputBase
   unless baseAlreadyExists (T.mkdir outputBase)
@@ -88,8 +88,8 @@ processVideo vDirs videoId = do
     Nothing -> echoTxt $ "Video file not found: " <> (fromId videoId)
     Just srcPath -> do
       let srcDirFileName = T.filename srcPath
-          srcPathOrig    = (src vDirs) </> srcDirFileName
-          srcPathMkv     = (srcMkv vDirs) </> srcDirFileName `replaceExtension` "mkv"
+          srcPathOrig    = (src vDirs) T.</> srcDirFileName
+          srcPathMkv     = (srcMkv vDirs) T.</> T.dropExtension srcDirFileName T.<.> "mkv"
       -- Convert source to 44.1k mkv to use for extraction
       cmdOutput <- convertToMkvCmd srcPathOrig srcPathMkv
       T.rm srcPathOrig

@@ -2,6 +2,7 @@ module Yin where
 
 import Data.List
 import qualified Turtle as T
+import qualified Data.Text as Text
 import Prelude hiding (FilePath)
 import Filesystem.Path.CurrentOS as Path
 import Data.Monoid           ((<>))
@@ -39,7 +40,7 @@ getPitches_yin filePath monoFilePath = do
 
 extractPitchTo :: T.FilePath -> T.FilePath -> T.FilePath -> IO ()
 extractPitchTo outputDir tempDir filePath = do
-  let monoFilePath = tempPath `replaceExtension` ".wav"
+  let monoFilePath = T.dropExtension tempPath T.<.> ".wav"
   bins <- getPitches_yin filePath monoFilePath
   case bins of
     Left yinErr -> errMsg yinErr
@@ -58,7 +59,7 @@ extractPitchTo outputDir tempDir filePath = do
                   dupeNoteIndex = count midiNote prevNotes
                   midiNoteName  = (showt midiNote) <> "__" <> (showt dupeNoteIndex) <> "__"
                   outputName    = midiNoteName <> fileName
-                  outputPath    = outputDir </> (Path.fromText outputName)
+                  outputPath    = outputDir T.</> Text.unpack outputName
                   _startTime    = showt startTime
                   _duration     = showt duration
                   _segment      = showt segment
@@ -81,7 +82,7 @@ extractPitchTo outputDir tempDir filePath = do
       T.rm monoFilePath
 
   where
-    fileNamePath = filename filePath
-    tempPath = tempDir </> fileNamePath
+    fileNamePath = T.filename filePath
+    tempPath = tempDir T.</> fileNamePath
     fileName = toTxt fileNamePath
     errMsg e = echoTxt ("× " <> fileName <> " Error: " <> e)
