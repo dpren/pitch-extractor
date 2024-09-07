@@ -3,7 +3,7 @@ module YouTube where
 import Network.Wreq
 import Control.Lens
 import Data.Aeson.Lens
-import Data.ByteString.Lazy as SL (putStrLn)
+import Data.ByteString.Lazy.Char8 as SL (putStrLn)
 import Data.Text as Text          (pack, unpack, Text)
 import TextShow                   (showt)
 import Control.Monad              (when, unless)

@@ -62,7 +62,7 @@ uniqPathName path = do
         uniqPathNumbered :: T.MonadIO io => T.FilePath -> Int -> io T.FilePath
         uniqPathNumbered path i = do
           let ip1 = i + 1
-              ip1path = T.fromText ((toTxt path) <> "-" <> (showt ip1))
+              ip1path = unpack ((toTxt path) <> "-" <> (showt ip1))
           enumDirExists <- T.testdir ip1path
           case enumDirExists of
             True -> uniqPathNumbered path ip1

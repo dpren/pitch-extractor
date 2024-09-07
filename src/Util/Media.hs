@@ -39,14 +39,14 @@ normalizeVids outDir = do
   case normalizeCmdOut of
     (T.ExitFailure n, err) -> error $ unpack ("ffmpeg-normalize failure" <> err)
     (T.ExitSuccess, _) -> do
-      let normalizedDir = outDir </> "normalized"
+      let normalizedDir = outDir T.</> "normalized"
       T.echo "ffmpeg-normalize success"
       originalFiles   <- lsMkvs outDir
       normalizedFiles <- lsMkvs normalizedDir
 
       mapM_ T.rm originalFiles
       mapM_
-        (\normFile -> T.mv normFile (outDir </> T.filename normFile))
+        (\normFile -> T.mv normFile (outDir T.</> T.filename normFile))
         normalizedFiles
       T.rmdir normalizedDir
 
@@ -55,9 +55,9 @@ normalizeCmd :: T.FilePath -> Text
 normalizeCmd outDir =
   "ffmpeg-normalize "
   -- <> " -f "    -- overwrite
-  <> (toTxt (outDir </> "*.mkv")) -- input
+  <> (toTxt (outDir T.</> "*.mkv")) -- input
   <> " --sample-rate 44100 "
-  <> " --output-folder " <> (toTxt (outDir </> "normalized"))
+  <> " --output-folder " <> (toTxt (outDir T.</> "normalized"))
 
 lsMkvs :: T.MonadIO io => T.FilePath -> io [T.FilePath]
 lsMkvs = lsByPattern (T.ends ".mkv")
@@ -67,5 +67,5 @@ lsByPattern pattern dir = T.fold (
     T.ls dir
     T.& fmap (T.format T.fp)
     T.& T.grepText pattern
-    T.& fmap T.fromText
+    T.& fmap unpack
   ) Fold.list
