@@ -1,22 +1,31 @@
-#!/bin/sh
-# apt update
-# apt full-upgrade -y
+!/bin/sh
+apt update
+apt full-upgrade -y
 
-# apt install -y python python3 python3-pip ffmpeg
+apt install -y python3 python3-pip ffmpeg
 
-# pip3 install aubio==0.4.9 ffmpeg-normalize==1.15.6
 
-# sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-# sudo chmod a+rx /usr/local/bin/youtube-dl
+sudo apt update
+sudo apt install pipx
+pipx ensurepath
 
-# curl -sSL https://get.haskellstack.org/ | sh
-# exec $SHELL
+
+apt install cu #for yt-dlp
+
+pipx install aubio
+pipx install ffmpeg-normalize
+pipx install yt-dlp
+
+
+
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+
 
 
 # If you have > 1.5GB memory:
 #=====================================
-stack setup
-stack build
+# stack setup
+# stack build
 
 # else uncomment this instead:
 #=====================================
@@ -38,9 +47,7 @@ stack build
 
 
 
-stack exec pitch-extractor-exe "cockatiel" "1000"
-stack exec pitch-extractor-exe "simpsons" "1000"
-stack exec pitch-extractor-exe "dog playing piano" "1000"
-stack exec pitch-extractor-exe "reptiles" "1100"
+# stack exec pitch-extractor-exe "dog playing piano" "1000"
+# stack exec pitch-extractor-exe "Five Finger Family" "800"
+# stack exec pitch-extractor-exe "reptiles" "1100"
 
-sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl && sudo chmod a+rx /usr/local/bin/youtube-dl
