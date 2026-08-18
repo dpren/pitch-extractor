@@ -14,7 +14,8 @@ import Prelude hiding             (FilePath)
 import Util.Misc                  (toTxt, exec, parseInt)
 import Types
 
-api_key = "AIzaSyDyzaujBRkmU-rSPwGn9RuAd0pRM08Ry7g"
+-- api_key = "AIzaSyDyzaujBRkmU-rSPwGn9RuAd0pRM08Ry7g"
+api_key = "AIzaSyDGivqo3Lzn8C8WaCFFw-_LATsffyAWFeQ"
 api_url = "https://www.googleapis.com/youtube/v3/search?"
 
 download :: T.FilePath -> VideoId -> IO (T.ExitCode, VideoId)
@@ -28,10 +29,14 @@ download path videoId = do
       "yt-dlp -o "
       <> "'" <> (toTxt path) <> "/%(id)s.%(ext)s" <> "'"
       -- <> " -f 'bestvideo[height<=720]+bestaudio/best[height<=720]' "
-      <> " -f 'bestvideo[height<=480]+bestaudio/best[height<=480]' "
+      <> " -f 'bestvideo[height<=480]+ba[acodec!=opus]' "
       <> " --min-sleep-interval 1 "
-      <> " --max-sleep-interval 222 "
+      <> " --max-sleep-interval 51 "
       <> " --no-playlist "
+      <> " --max-filesize 200M " --200Mb = under 20min? (todo: assuming the downloads are 480p)
+
+      -- <> " --datebefore DATE "
+
       -- <> " --no-warnings "
       -- <> " --abort-on-error "
       -- <> " --retries 20 "
@@ -49,10 +54,10 @@ opts query maxPageResults pageToken = defaults
   & param "key"             .~ [api_key]
   & param "maxResults"      .~ [maxPageResults]
   & param "type"            .~ ["video"]
-  -- & param "duration"        .~ ["short|medium"]
-  & param "duration"        .~ ["short"]
-  & param "order"           .~ ["date"]
-  -- & param "order"           .~ ["relevance"]
+  & param "duration"        .~ ["short|medium"]
+  -- & param "duration"        .~ ["short"]
+  -- & param "order"           .~ ["date"]
+  & param "order"           .~ ["relevance"]
   & param "pageToken"       .~ [pageToken]
   & param "q"               .~ [query]
 

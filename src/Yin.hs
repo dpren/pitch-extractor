@@ -22,6 +22,7 @@ getPitches_yin filePath monoFilePath = do
       yinCmd       = ["yin_pitch.py", (toTxt monoFilePath)]
 
   pythonPath <- getPythonPath
+  echoTxt $ "yin_pitch.py using: " <> pythonPath
 
   cmdOutput <- T.shellStrict monoAudioCmd T.empty
   case cmdOutput of
@@ -43,7 +44,7 @@ extractPitchTo outputDir tempDir filePath = do
   let monoFilePath = T.dropExtension tempPath T.<.> ".wav"
   bins <- getPitches_yin filePath monoFilePath
   case bins of
-    Left yinErr -> errMsg yinErr
+    Left yinErr -> errMsg $ "extractPitchTo yinErr: " <> yinErr
     Right bins -> do
       let pitchSegments = qualifiedPitchSegments bins
       when (pitchSegments == []) (echoTxt ("× " <> fileName <> ": no pitches found"))

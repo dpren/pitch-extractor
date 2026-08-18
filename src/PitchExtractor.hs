@@ -94,7 +94,7 @@ processVideo vDirs videoId = do
       cmdOutput <- convertToMkvCmd srcPathOrig srcPathMkv
       T.rm srcPathOrig
       case cmdOutput of
-        (T.ExitFailure n, err) -> echoTxt err
+        (T.ExitFailure n, err) -> echoTxt $ "convertToMkvCmd error: " <> err
         (T.ExitSuccess, _) -> extractPitchTo (out vDirs) (tmp vDirs) srcPathMkv
 
 
@@ -114,7 +114,7 @@ consume ch videoDirs videoIds = do
   case maybeStr of
     Just videoId -> do
       echoTxt $ "  processing: " <> (fromId videoId)
-      echoTxt $ "  " <> (getProgress videoId videoIds)
+      echoTxt $ "  total progress: " <> (getProgress videoId videoIds)
       processVideo videoDirs videoId
       consume ch videoDirs videoIds
     Nothing -> return "Done."
@@ -128,9 +128,12 @@ forkJoin task = do
 
 
 getProgress :: VideoId -> [VideoId] -> Text
-getProgress videoId videoIds = showt percentage <> "%"
+getProgress videoId videoIds = _ratio  <> " (" <> (showt percentage) <> "%)"
   where
     total = fromIntegral (length videoIds)
+    maybeIndexInt = fmap ((+1)) (elemIndex videoId videoIds)
     maybeIndex = fmap (fromIntegral . (+1)) (elemIndex videoId videoIds)
     decm :: Double = (maybe 0 (/total) maybeIndex ) * 100
     percentage :: Int = round decm
+    _index = maybe (showt maybeIndexInt) showt maybeIndexInt 
+    _ratio = (_index) <> "/" <> (showt (length videoIds))

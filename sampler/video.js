@@ -7,7 +7,7 @@ const checkMidiRecursively = () =>
       .then(m => {
         m.inputs.size > 0
           ? document.querySelector("#midi-err").remove()
-          : checkMidiRecursively()
+          : checkMidiRecursively();
       }, console.error);
   }, 500);
 
@@ -17,7 +17,7 @@ const initialMidiCheck = () =>
       // midi is not connected
       if (m.inputs.size <= 0) {
         insertNoMidiMsgEl();
-        console.log('insertNoMidiMsgEl')
+        console.log('insertNoMidiMsgEl');
         checkMidiRecursively();
       }
     }, console.error);
@@ -31,9 +31,10 @@ if (!navigator.requestMIDIAccess) {
 
 
 window.onMIDIMessage = ({ data }) => {
+  console.log('onMIDIMessage:1111111111');
   noteLog.textContent = data[1];
   console.log("onMIDIMessage, no vids loaded");
-}
+};
 let _onMidiMsg = (ev) => window.onMIDIMessage(ev);
 const midiSelect = document.querySelector("#midiSelect");
 let midiRefs = [];
@@ -65,7 +66,7 @@ const updateMidiSelectOpts = (midi) => {
 
   midiSelect.innerHTML = inpsArr.length > 0
     ? inpsArr.map(inp => `<option>${inp.name}</option>`).join("")
-    : "<option disabled selected>-- No MIDI Inputs --</option>"
+    : "<option disabled selected>-- No MIDI Inputs --</option>";
 };
 
 navigator.requestMIDIAccess()
@@ -73,7 +74,7 @@ navigator.requestMIDIAccess()
     updateMidiSelectOpts(midi);
     midi.onstatechange = (ev) => {
       updateMidiSelectOpts(ev.target);
-    }
+    };
   }, console.error);
 
 
@@ -125,7 +126,7 @@ dropzoneEl.addEventListener('change', ev => {
 const createVideoEl = (filename, file) => {
   // file.type = "video/webm;codecs=vp9,opus"
   // file.type = "video/x-matroska; codecs='h264,pcm'"
-  console.log('file:', file)
+  console.log('file:', file);
   const src = URL.createObjectURL(file);
   const selectorId = 'v-' + dropExtension(filename);
   containerEl.insertAdjacentHTML('beforeend',
@@ -157,14 +158,15 @@ const attachGainNode = vidEl => {
   vidEl.gainNode = audioCtx.createGain();
   vidEl.audioSourceNode.connect(vidEl.gainNode);
   vidEl.gainNode.connect(audioCtx.destination);
-}
+};
 
 const onCanPlay = ev => {
-  console.log('onCanPlay')
+  console.log('onCanPlay');
   vidsLoaded++;
   ev.target.removeEventListener('canplay', onCanPlay);
   if (vidsLoaded === totalVidCount) {
     onAllVideosLoaded(videoEls);
+    console.log('onAllVideosLoaded!!!!!!!');
   }
 };
 
@@ -183,7 +185,7 @@ const videoElsToIndexedGroups = videoEls => {
   }, ixdGrps);
 
   return initd;
-}
+};
 
 
 const onAllVideosLoaded = (videoEls) => {
@@ -207,13 +209,13 @@ const onAllVideosLoaded = (videoEls) => {
       vidMidiGroup.rrIndex = nextIndex;
     }
     return vidMidiGroup[vidMidiGroup.rrIndex];
-  }
+  };
 
   const getRoundRobin = (midiNote) => {
     const vidMidiGroup = videoMidiGroups[midiNote];
     if (!vidMidiGroup) return;
     return vidMidiGroup[vidMidiGroup.rrIndex];
-  }
+  };
 
   const scaleVel = unit => 1 - Math.log(1 + (10 * (1 - unit))) / Math.log(11);
 
@@ -232,7 +234,7 @@ const onAllVideosLoaded = (videoEls) => {
     // setTimeout(() => {
     //   videoEl.style.display = "none";
     // }, 1800);
-  }
+  };
 
   const stopVideo = (midiNote) => {
     const videoEl = getRoundRobin(midiNote);
@@ -248,7 +250,7 @@ const onAllVideosLoaded = (videoEls) => {
     // setTimeout(() => {
     // }, 200);
     // }, 500);
-  }
+  };
 
   // navigator.requestMIDIAccess()
   //   .then(success, console.error);
@@ -268,7 +270,7 @@ const onAllVideosLoaded = (videoEls) => {
     const command = data[0] >> 4;
     const midiNote = data[1];
     const velocity = data[2] / 127;
-    // console.log(command, midiNote, velocity)
+    console.log("onMIDIMessage 222222222222222", command, midiNote);
 
     if (command === 9 && velocity > 0) {
       noteLog.textContent = midiNote;
@@ -278,5 +280,5 @@ const onAllVideosLoaded = (videoEls) => {
     if (command === 8) { //|| velocity <= 0) {
       stopVideo(midiNote);
     }
-  }
-}
+  };
+};

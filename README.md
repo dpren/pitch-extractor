@@ -13,6 +13,9 @@ Demo:
 Dependencies
 ----
 
+
+install `ghcup`: https://www.haskell.org/ghcup/
+
     brew install haskell-stack
     brew install ffmpeg
     brew install youtube-dl
@@ -23,12 +26,11 @@ Dependencies
 
 Make sure these are all on your $PATH
 
-Windows users, try [scoop](https://github.com/lukesampson/scoop#scoop)
+<!-- Windows users, try [scoop](https://github.com/lukesampson/scoop#scoop) -->
 
 Usage
 ----
 
-    stack setup
     stack build
     stack exec pitch-extractor-exe "choir audition" "100"
 

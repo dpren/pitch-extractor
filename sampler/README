@@ -1,0 +1,14 @@
+<!-- You need to launch chrome with
+`open -a "Google Chrome" --args --max-web-media-player-count=2000`
+
+instead of index.html
+running audio.html and video.html in seperate browser windows solves performance problem. -->
+
+245 loaded videos is max (otherwise no audio for some reason)
+
+
+TODO
+¯¯¯¯¯¯¯
+
+resource swap the video blob data into (<=75) media elements. it only moves obj references. pitchbend:
+  https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/detune
